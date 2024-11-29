@@ -1,16 +1,110 @@
--- lua/config/plugins.lua
 return {
+    -- Color scheme
+    {
+        "catppuccin/nvim",
+        name = "catppuccin",
+        priority = 1000,
+        config = function()
+            require("catppuccin").setup({
+                flavour = "mocha",
+                background = {
+                    light = "frappe",
+                    dark = "frappe",
+                },
+                transparent_background = false,
+                term_colors = true,
+                integrations = {
+                    cmp = true,
+                    gitsigns = true,
+                    nvimtree = true,
+                    telescope = true,
+                    treesitter = true,
+                    mason = true,
+                    which_key = true,
+                    indent_blankline = {
+                        enabled = true,
+                        colored_indent_levels = false,
+                    },
+                    native_lsp = {
+                        enabled = true,
+                        virtual_text = {
+                            errors = { "italic" },
+                            hints = { "italic" },
+                            warnings = { "italic" },
+                            information = { "italic" },
+                        },
+                        underlines = {
+                            errors = { "underline" },
+                            hints = { "underline" },
+                            warnings = { "underline" },
+                            information = { "underline" },
+                        },
+                    },
+                },
+            })
+            
+            vim.cmd.colorscheme "catppuccin"   
+            vim.api.nvim_set_hl(0, "Cursor", { bg = "#F4B8E4" })
+            vim.api.nvim_set_hl(0, "CursorLine", { bg = "#303446" })
+        end,
+    },
+
     -- Essential plugins
     {
         "nvim-telescope/telescope.nvim",
+        dependencies = { "nvim-lua/plenary.nvim" },
+        config = function()
+            -- Add keymaps for research workflow
+            vim.keymap.set("n", "<leader>fn", ":Telescope find_files cwd=~/OneDrive/Obsidian<CR>")
+            vim.keymap.set("n", "<leader>fg", ":Telescope live_grep cwd=~/OneDrive/Obsidian<CR>")
+        end
+    },
+    {
+        "nvim-treesitter/nvim-treesitter",
+        build = ":TSUpdate",
+        config = function()
+            require("nvim-treesitter.configs").setup({
+                ensure_installed = {
+                    "python", "lua", "vim", "javascript",
+                    "typescript", "json", "html", "css",
+                    "markdown", "bash"
+                },
+                highlight = {
+                    enable = true,
+                    additional_vim_regex_highlighting = false,
+                },
+                indent = { enable = true },
+                incremental_selection = {
+                    enable = true,
+                    keymaps = {
+                        init_selection = "<CR>",
+                        node_incremental = "<CR>",
+                        node_decremental = "<BS>",
+                        scope_incremental = "<TAB>",
+                    },
+                },
+            })
+        end
+    },
+    {
+        "ThePrimeagen/harpoon",
+        config = function()
+            local mark = require("harpoon.mark")
+            local ui = require("harpoon.ui")
+
+            vim.keymap.set("n", "<leader>a", mark.add_file)
+            vim.keymap.set("n", "<C-e>", ui.toggle_quick_menu)
+            vim.keymap.set("n", "<C-h>", function() ui.nav_file(1) end)
+            vim.keymap.set("n", "<C-j>", function() ui.nav_file(2) end)
+            vim.keymap.set("n", "<C-k>", function() ui.nav_file(3) end)
+            vim.keymap.set("n", "<C-l>", function() ui.nav_file(4) end)
+        end,
         dependencies = { "nvim-lua/plenary.nvim" }
     },
-    { "nvim-treesitter/nvim-treesitter" },
-    { "ThePrimeagen/harpoon" },
     { "mbbill/undotree" },
     { "tpope/vim-fugitive" },
 
-    -- LSP
+    -- LSP and completion
     {
         "VonHeikemen/lsp-zero.nvim",
         branch = "v2.x",
@@ -33,85 +127,15 @@ return {
             { "rafamadriz/friendly-snippets" },
         }
     },
-    {
-        "shaunsingh/solarized.nvim",
-        config = function()
-            vim.cmd("colorscheme solarized")
-        end,
-    },
-    {
-        "nvim-telescope/telescope.nvim",
-        dependencies = { "nvim-lua/plenary.nvim" }
-    },
-    { "nvim-treesitter/nvim-treesitter" },
-    { "ThePrimeagen/harpoon" },
-    { "mbbill/undotree" },
-    { "tpope/vim-fugitive" },
 
-    -- Add these LSP plugins
-    {
-        "williamboman/mason.nvim",
-        "williamboman/mason-lspconfig.nvim",
-        "neovim/nvim-lspconfig",
-    },
-
-    -- Add LSP Zero for easier setup
-    {
-        'VonHeikemen/lsp-zero.nvim',
-        branch = 'v2.x',
-        dependencies = {
-            -- LSP Support
-            { 'neovim/nvim-lspconfig' },             -- Required
-            { 'williamboman/mason.nvim' },           -- Optional
-            { 'williamboman/mason-lspconfig.nvim' }, -- Optional
-
-            -- Autocompletion
-            { 'hrsh7th/nvim-cmp' },     -- Required
-            { 'hrsh7th/cmp-nvim-lsp' }, -- Required
-            { 'L3MON4D3/LuaSnip' },     -- Required
-        }
-    },
-    {
-        "nvim-treesitter/nvim-treesitter",
-        build = ":TSUpdate",
-        config = function()
-            require("nvim-treesitter.configs").setup({
-                ensure_installed = {
-                    "python",
-                    "lua",
-                    "vim",
-                    "javascript",
-                    "typescript",
-                    "json",
-                    "html",
-                    "css",
-                    "markdown",
-                    "bash"
-                },
-                highlight = {
-                    enable = true,
-                    additional_vim_regex_highlighting = false,
-                },
-                indent = { enable = true },
-                incremental_selection = {
-                    enable = true,
-                    keymaps = {
-                        init_selection = "<CR>",
-                        node_incremental = "<CR>",
-                        node_decremental = "<BS>",
-                        scope_incremental = "<TAB>",
-                    },
-                },
-            })
-        end
-    },
+    -- Editor enhancements
     {
         "windwp/nvim-autopairs",
         event = "InsertEnter",
         config = function()
             require("nvim-autopairs").setup({
                 enable_check_bracket_line = true,
-                check_ts = true, -- treesitter integration
+                check_ts = true,
                 ts_config = {
                     lua = { 'string' },
                     java = false,
@@ -129,55 +153,88 @@ return {
             })
         end
     },
-    {
-        "tpope/vim-surround", -- Allows you to surround text with pairs
-    },
-    {
-        "lervag/vimtex",                         -- Enhanced LaTeX support
-        config = function()
-            vim.g.vimtex_view_method = 'zathura' -- or 'skim' on macOS
-            vim.g.vimtex_quickfix_mode = 0
-            -- Latex warnings to ignore
-            vim.g.vimtex_quickfix_ignore_filters = {
-                'Underfull',
-                'Overfull',
-            }
-        end
-    },
+    { "tpope/vim-surround" },
+
+       -- Terminal/tmux integration
     {
         "christoomey/vim-tmux-navigator",
-        lazy = false, -- Load immediately
+        lazy = false,
     },
-    {
-        "ThePrimeagen/harpoon",
-        config = function()
-            local mark = require("harpoon.mark")
-            local ui = require("harpoon.ui")
 
-            -- Harpoon keymaps
-            vim.keymap.set("n", "<leader>a", mark.add_file)
-            vim.keymap.set("n", "<C-e>", ui.toggle_quick_menu)
-            vim.keymap.set("n", "<C-h>", function() ui.nav_file(1) end)
-            vim.keymap.set("n", "<C-j>", function() ui.nav_file(2) end)
-            vim.keymap.set("n", "<C-k>", function() ui.nav_file(3) end)
-            vim.keymap.set("n", "<C-l>", function() ui.nav_file(4) end)
-        end,
-        dependencies = { "nvim-lua/plenary.nvim" }
+    -- Markdown
+    {
+        "preservim/vim-markdown",
+        config = function()
+            -- Enable conceal for prettier markdown
+            vim.g.vim_markdown_conceal = 1
+            vim.g.vim_markdown_folding_disabled = 1
+            -- Enable YAML frontmatter
+            vim.g.vim_markdown_frontmatter = 1
+        end
     },
     {
-        "mg979/vim-visual-multi",
-        event = "VeryLazy",
+        "iamcco/markdown-preview.nvim",
+        cmd = { "MarkdownPreview", "MarkdownPreviewToggle" },
+        build = function() vim.fn["mkdp#util#install"]() end,
+    },
+
+    -- Obsidian
+    {
+        "epwalsh/obsidian.nvim",
+        lazy = false,
+        event = {
+            "BufReadPre " .. vim.fn.expand "~" .. "OneDrive/Obsidian/**.md",
+            "BufNewFile " .. vim.fn.expand "~" .. "OneDrive/Obsidian/**.md",
+        },
+        dependencies = {
+            "nvim-lua/plenary.nvim",
+        },
         config = function()
-            -- These are better default mappings for Mac
-            vim.g.VM_maps = {
-                ['Find Under'] = '<C-d>',              -- Control-d (like VSCode)
-                ['Find Subword Under'] = '<C-d>',      -- Control-d
-                ['Select All'] = '<C-S-l>',            -- Control-Shift-l
-                ['Add Cursor Up'] = '<C-S-Up>',        -- Control-Shift-Up
-                ['Add Cursor Down'] = '<C-S-Down>',    -- Control-Shift-Down
-                ['Add Cursor At Pos'] = '<C-S-Space>', -- Control-Shift-Space
-                ['Start Regex Search'] = '<C-/>'       -- Control-/
-            }
+            require("obsidian").setup({
+                dir = "~/OneDrive/Obsidian",  -- Change this to your vault path
+                notes_subdir = "Quick Notes",
+                note_id_func = function(title)
+                    -- Convert the title to a valid filename
+                    local suffix = ""
+                    if title ~= nil then
+                        -- Clean title and convert to lowercase
+                        suffix = title:gsub(" ", "-"):gsub("[^A-Za-z0-9-]", ""):lower()
+                    else
+                        -- If no title provided, use date
+                        suffix = os.date("%Y-%m-%d-%H%M%S")
+                end
+                return suffix
+            end,
+                daily_notes = {
+                    folder = "Daily",
+                    date_format = "%Y-%m-%d"
+                },
+                completion = {
+                    nvim_cmp = true,
+                    min_chars = 2,
+                },
+                templates = {
+                    subdir = "Templates",
+                    date_format = "%Y-%m-%d",
+                    time_format = "%H:%M",
+                },
+                -- Enable WikiLinks [[Links]]
+                disable_frontmatter = false,
+                note_frontmatter_func = nil,
+                follow_url_func = nil,
+                use_advanced_uri = true,
+            })
+
+            -- Key mappings for Obsidian features
+            vim.keymap.set("n", "gf", function()
+                if require("obsidian").util.cursor_on_markdown_link() then
+                    return "<cmd>ObsidianFollowLink<CR>"
+                else
+                    return "gf"
+                end
+            end, { noremap = false, expr = true })
+
+            vim.keymap.set("n", "<leader>fp", ":ObsidianNew<CR>")
         end
-    }
+    },
 }
