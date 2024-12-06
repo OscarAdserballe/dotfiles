@@ -49,16 +49,25 @@ return {
         end,
     },
 
-    -- Essential plugins
+    -- Telescope
     {
         "nvim-telescope/telescope.nvim",
         dependencies = { "nvim-lua/plenary.nvim" },
         config = function()
+            local telescope = require('telescope')
+            telescope.setup({
+                pickers = {
+                    live_grep = {
+                        previewer = false
+                    }
+                }
+            })
             -- Add keymaps for research workflow
             vim.keymap.set("n", "<leader>fn", ":Telescope find_files cwd=~/OneDrive/Obsidian<CR>")
             vim.keymap.set("n", "<leader>fg", ":Telescope live_grep cwd=~/OneDrive/Obsidian<CR>")
         end
     },
+
     {
         "nvim-treesitter/nvim-treesitter",
         build = ":TSUpdate",
@@ -237,4 +246,64 @@ return {
             vim.keymap.set("n", "<leader>fp", ":ObsidianNew<CR>")
         end
     },
+    -- CmdLine Plugin
+    {
+        "folke/noice.nvim",
+        event = "VeryLazy",
+        dependencies = {
+          "MunifTanjim/nui.nvim",
+          "rcarriga/nvim-notify",
+        },
+    },
+
+    -- Avante:
+   {
+      "yetone/avante.nvim",
+      event = "VeryLazy",
+      lazy = false,
+      version = false, -- latest changes
+      opts = {
+        -- config will go in setup()
+      },
+      build = "make",
+      dependencies = {
+        "stevearc/dressing.nvim",
+        "nvim-lua/plenary.nvim",
+        "MunifTanjim/nui.nvim",
+        -- Optional but recommended dependencies
+        "hrsh7th/nvim-cmp",
+        "nvim-tree/nvim-web-devicons",
+        {
+          "HakonHarnes/img-clip.nvim",
+          event = "VeryLazy",
+          opts = {
+            default = {
+              embed_image_as_base64 = false,
+              prompt_for_file_name = false,
+              drag_and_drop = {
+                insert_mode = true,
+              },
+              use_absolute_path = true,
+            },
+          },
+        },
+      },
+    },
+
+    -- Magma for Jupyter Notebook integration
+    {
+        "dccsillag/magma-nvim",
+        build = ":UpdateRemotePlugins",
+        lazy = false,
+        config = function()
+            -- Basic configuration
+            vim.g.magma_automatically_open_output = false
+            
+            -- Essential keymaps
+            vim.keymap.set('n', '<Leader>r', ':MagmaEvaluateLine<CR>', { silent = true })
+            vim.keymap.set('x', '<Leader>r', ':<C-u>MagmaEvaluateVisual<CR>', { silent = true })
+            vim.keymap.set('n', '<Leader>ro', ':MagmaShowOutput<CR>', { silent = true })
+        end,
+    },
+
 }
