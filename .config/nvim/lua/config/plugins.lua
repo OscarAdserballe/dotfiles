@@ -56,13 +56,39 @@ return {
         config = function()
             local telescope = require('telescope')
             telescope.setup({
+                defaults = {
+                    file_ignore_patterns = {
+                        "%.pyc",
+                        "%.pyo",
+                        "%.pyd",
+                        "__pycache__/",
+                        "%.cache",
+                        "%.git/",
+                        "%.ipynb_checkpoints/",
+                        "node_modules/",
+                        "%.dll",
+                        "%.class",
+                        "%.exe",
+                        "%.o",
+                        "%.a",
+                        "%.out",
+                        "%.pdf",
+                        "%.mkv",
+                        "%.mp4",
+                        "%.zip",
+                    }
+                },
                 pickers = {
+                    find_files = {
+                        -- hidden = true,
+                        no_ignore = true  -- This will show files in .gitignore as well
+                    },
                     live_grep = {
-                        previewer = false
+                        previewer = false,
+                    -- hidden = true     -- This enables searching in hidden files
                     }
                 }
             })
-            -- Add keymaps for research workflow
             vim.keymap.set("n", "<leader>fn", ":Telescope find_files cwd=~/OneDrive/Obsidian<CR>")
             vim.keymap.set("n", "<leader>fg", ":Telescope live_grep cwd=~/OneDrive/Obsidian<CR>")
         end
@@ -134,7 +160,43 @@ return {
             -- Snippets
             { "L3MON4D3/LuaSnip" },
             { "rafamadriz/friendly-snippets" },
-        }
+        },
+        config = function()
+            local lsp = require('lsp-zero').preset({})
+
+            lsp.on_attach(function(client, bufnr)
+                -- see :help lsp-zero-keybindings
+                -- to learn the available actions
+                lsp.default_keymaps({buffer = bufnr})
+            end)
+
+            -- Configure mason to automatically install LSP servers
+            require('mason').setup({})
+            require('mason-lspconfig').setup({
+                ensure_installed = {
+                    'pyright',  -- Python LSP
+                    'lua_ls',   -- Lua LSP
+                },
+                handlers = {
+                    lsp.default_setup,
+                }
+            })
+
+            -- Configure completion
+            local cmp = require('cmp')
+            local cmp_select = {behavior = cmp.SelectBehavior.Select}
+
+            cmp.setup({
+                mapping = cmp.mapping.preset.insert({
+                    ['<C-p>'] = cmp.mapping.select_prev_item(cmp_select),
+                    ['<C-n>'] = cmp.mapping.select_next_item(cmp_select),
+                    ['<C-y>'] = cmp.mapping.confirm({ select = true }),
+                    ['<C-Space>'] = cmp.mapping.complete(),
+                })
+            })
+
+            lsp.setup()
+        end
     },
 
     -- Editor enhancements
@@ -247,20 +309,62 @@ return {
         end
     },
     -- CmdLine Plugin
+    -- {
+    --     "folke/noice.nvim",
+    --     event = "VeryLazy",
+    --     dependencies = {
+    --       "MunifTanjim/nui.nvim",
+    --       "rcarriga/nvim-notify",
+    --     },
+    -- },
+
+    -- Jupyter Notebook Support
     {
-        "folke/noice.nvim",
-        event = "VeryLazy",
-        dependencies = {
-          "MunifTanjim/nui.nvim",
-          "rcarriga/nvim-notify",
-        },
+        "dccsillag/magma-nvim",
+        build = ":UpdateRemotePlugins",
+        config = function()
+            -- Magma configuration
+            vim.g.magma_automatically_open_output = true
+            vim.g.magma_image_provider = "kitty"
+            
+            -- Keymaps for Jupyter notebook operations
+            vim.keymap.set("n", "<leader>je", ":MagmaEvaluateOperator<CR>", { silent = true, desc = "Evaluate Operator" })
+            vim.keymap.set("n", "<leader>jl", ":MagmaEvaluateLine<CR>", { silent = true, desc = "Evaluate Line" })
+            vim.keymap.set("x", "<leader>jv", ":<C-u>MagmaEvaluateVisual<CR>", { silent = true, desc = "Evaluate Visual Selection" })
+            vim.keymap.set("n", "<leader>jc", ":MagmaReevaluateCell<CR>", { silent = true, desc = "Reevaluate Cell" })
+            vim.keymap.set("n", "<leader>jd", ":MagmaDelete<CR>", { silent = true, desc = "Delete Output" })
+            vim.keymap.set("n", "<leader>jo", ":MagmaShowOutput<CR>", { silent = true, desc = "Show Output" })
+            vim.keymap.set("n", "<leader>ji", ":MagmaInit<CR>", { silent = true, desc = "Initialize Kernel" })
+        end,
+    },
+
+    {
+        "goerz/jupytext.vim",
+        lazy = false,
+        init = function()
+            -- Configure jupytext to automatically sync .ipynb with .py files
+            vim.g.jupytext_fmt = 'py:percent'
+            vim.g.jupytext_style = 'hydrogen'
+        -- Enable automatic synchronization
+        vim.g.jupytext_sync_always = 1
+        -- Automatically convert ipynb files when reading/writing
+        vim.g.jupytext_enable_custom_codecells = 1
+        vim.g.jupytext_command = 'jupytext'
+        -- Set the filetype for .ipynb files
+        vim.cmd([[
+            augroup jupyter_notebooks
+                autocmd!
+                autocmd BufRead,BufNewFile *.ipynb set filetype=python
+                autocmd BufRead,BufNewFile *.ipynb setlocal conceallevel=0
+            augroup END
+        ]])
+        end
     },
 
     -- Avante:
    {
       "yetone/avante.nvim",
       event = "VeryLazy",
-      lazy = false,
       version = false, -- latest changes
       opts = {
         -- config will go in setup()
@@ -270,7 +374,6 @@ return {
         "stevearc/dressing.nvim",
         "nvim-lua/plenary.nvim",
         "MunifTanjim/nui.nvim",
-        -- Optional but recommended dependencies
         "hrsh7th/nvim-cmp",
         "nvim-tree/nvim-web-devicons",
         {
@@ -290,20 +393,43 @@ return {
       },
     },
 
-    -- Magma for Jupyter Notebook integration
+    -- GitHub Copilot
     {
-        "dccsillag/magma-nvim",
-        build = ":UpdateRemotePlugins",
-        lazy = false,
+        "github/copilot.vim",
+        cmd = "Copilot",
+        event = "InsertEnter",
         config = function()
-            -- Basic configuration
-            vim.g.magma_automatically_open_output = false
-            
-            -- Essential keymaps
-            vim.keymap.set('n', '<Leader>r', ':MagmaEvaluateLine<CR>', { silent = true })
-            vim.keymap.set('x', '<Leader>r', ':<C-u>MagmaEvaluateVisual<CR>', { silent = true })
-            vim.keymap.set('n', '<Leader>ro', ':MagmaShowOutput<CR>', { silent = true })
-        end,
+            -- Disable copilot by default (enable with :Copilot enable)
+            vim.g.copilot_enabled = true
+            -- Disable default tab mapping for acceptance
+             -- vim.g.copilot_no_tab_map = true
+        end
     },
 
+    -- Auto-save
+    {
+        "pocco81/auto-save.nvim",
+        config = function()
+            require("auto-save").setup({
+                enabled = true,
+                execution_message = {
+                    message = function() return ("AutoSave: saved at " .. vim.fn.strftime("%H:%M:%S")) end,
+                    dim = 0.18,
+                    cleaning_interval = 1250,
+                },
+                trigger_events = {"InsertLeave", "TextChanged"},
+                -- Function to determine whether to save
+                condition = function(buf)
+                    local fn = vim.fn.expand("%:t")
+                    local utils = require("auto-save.utils.data")
+                    if fn ~= "" and utils.not_in(fn, {}) then
+                        return true
+                    end
+                    return false
+                end,
+                write_all_buffers = false,
+                debounce_delay = 135,
+            })
+        end
+    },
 }

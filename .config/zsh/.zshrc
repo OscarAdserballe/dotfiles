@@ -79,7 +79,7 @@ export PATH="/Users/oscarjuliusadserballe/.local/bin:$PATH"
 
 ### SSH KEYS ###
 # start ssh-agent
-alias connect="sh ~/cli_scripts/connect.ssh.sh"
+alias connect="sh ~/cli_scripts/connect_ssh.sh"
 ### END SSH KEYS ###
 
 # setting neovim as default

@@ -1,6 +1,8 @@
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
+require('custom.auto-session').setup()
+
 -- Bootstrap lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
@@ -19,12 +21,13 @@ vim.opt.rtp:prepend(lazypath)
 require("config.options")               -- Load options first
 require("lazy").setup("config.plugins") -- Then load plugins
 require("config.keymaps")               -- Load keymaps last
-require("config.noice").setup()
 
 
 vim.opt.laststatus = 3
 
 require('avante_lib').load()
+
+require('custom.auto-session').setup()
 
 require('avante').setup({
   provider = "claude",
