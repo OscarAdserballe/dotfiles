@@ -95,7 +95,7 @@ alias cds="cd ~/OneDrive/5th\ Semester"
 alias cdy="cd ~/OneDrive/5th\ Semester/Yesterdays\ Wisdom/yesterdays-wisdom"
 alias cda="cd ~/Arbejde/GitHub"
 alias cdb="cd -"
-alias cdz="cd ~/.zshrc"
+alias cdconfig="cd ~/dotfiles/.config"
 
 # code aliases
 alias codes="code ~/Arbejde/GitHub/streamlit-app"
@@ -129,7 +129,7 @@ alias latex="~/cli_scripts/cli_latex.py"
 
 
 # modifying commands inplace
-alias ls="ls -lth"
+alias ls="ls -1lth"
 alias listall="ls -ltha"
 alias pytest="sudo poetry run pytest -v -s --pdb"
 alias tree="tree -I '__pycache__|.git|node_modules|venv|log'"
@@ -138,6 +138,11 @@ alias tree="tree -I '__pycache__|.git|node_modules|venv|log'"
 export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
 
 test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh" || true
+
+## Opening tmux session on startup
+if [ -z "$TMUX" ]; then # checking that tmux is not already running to prevent nested sessions
+    tmux attach -t obsidian || tmux new -s obsidian
+fi
 
 
 # User configuration

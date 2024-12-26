@@ -45,3 +45,29 @@ require('avante').setup({
     auto_apply_diff_after_generation = false,
   },
 })
+
+vim.api.nvim_create_user_command('Term', function()
+    local width = vim.o.columns
+    local height = math.floor(vim.o.lines * 0.3)
+    local buf = vim.api.nvim_create_buf(false, true)
+    
+    vim.api.nvim_open_win(buf, true, {
+        relative = 'editor',
+        width = width,
+        height = height,
+        col = 0,
+        row = vim.o.lines - height,
+        style = 'minimal',
+        border = 'rounded',
+        title='Pop-up Terminal'
+    })
+    
+    vim.cmd('term')
+    vim.cmd('startinsert')
+end, {})
+
+-- setting keymap to open terminal with new command, Term
+vim.keymap.set('n', '<leader>t', ':Term<CR>', { noremap = true })
+
+-- setting keymap to open file explorer on left side
+vim.keymap.set('n', '<leader>b', ':Neotree toggle<CR>', { noremap = true })

@@ -6,13 +6,28 @@ return {
         priority = 1000,
         config = function()
             require("catppuccin").setup({
-                flavour = "mocha",
-                background = {
-                    light = "frappe",
-                    dark = "frappe",
-                },
+                flavour = "mocha", -- latte, frappe, macchiato, mocha
                 transparent_background = false,
                 term_colors = true,
+                dim_inactive = {
+                    enabled = true,
+                    shade = "dark",
+                    percentage = 0.25,
+                },
+                styles = {
+                    comments = { "italic" },
+                    conditionals = { "italic" },
+                    loops = {},
+                    functions = {},
+                    keywords = {},
+                    strings = {},
+                    variables = {},
+                    numbers = {},
+                    booleans = {},
+                    properties = {},
+                    types = {},
+                    operators = {},
+                },
                 integrations = {
                     cmp = true,
                     gitsigns = true,
@@ -42,7 +57,6 @@ return {
                     },
                 },
             })
-            
             vim.cmd.colorscheme "catppuccin"   
             vim.api.nvim_set_hl(0, "Cursor", { bg = "#F4B8E4" })
             vim.api.nvim_set_hl(0, "CursorLine", { bg = "#303446" })
@@ -61,6 +75,13 @@ return {
                         "%.pyc",
                         "%.pyo",
                         "%.pyd",
+                        "%.png",
+                        "%.jpg",
+                        "%.jpeg",
+                        "%.gif",
+                        "%.svg",
+                        "%.otf",
+                        "%.ttf",
                         "__pycache__/",
                         "%.cache",
                         "%.git/",
@@ -76,15 +97,18 @@ return {
                         "%.mkv",
                         "%.mp4",
                         "%.zip",
+                        "%.log",
+                        "%.txt",
                     }
                 },
                 pickers = {
                     find_files = {
                         -- hidden = true,
+                        previewer = true,
                         no_ignore = true  -- This will show files in .gitignore as well
                     },
                     live_grep = {
-                        previewer = false,
+                        previewer = true,
                     -- hidden = true     -- This enables searching in hidden files
                     }
                 }
@@ -169,6 +193,15 @@ return {
                 -- to learn the available actions
                 lsp.default_keymaps({buffer = bufnr})
             end)
+
+        lsp.on_attach(function(client, bufnr)
+            -- Add this line to ensure Copilot works alongside LSP
+            if client.name == "pyright" then
+                client.server_capabilities.documentFormattingProvider = false
+            end
+            
+            lsp.default_keymaps({buffer = bufnr})
+        end)
 
             -- Configure mason to automatically install LSP servers
             require('mason').setup({})
@@ -305,19 +338,16 @@ return {
                 end
             end, { noremap = false, expr = true })
 
+            -- Regular new note
             vim.keymap.set("n", "<leader>fp", ":ObsidianNew<CR>")
-        end
+            -- Daily note
+            vim.keymap.set("n", "<leader>fd", ":ObsidianToday<CR>")
+            -- Open yesterday's daily note
+            vim.keymap.set("n", "<leader>fy", ":ObsidianYesterday<CR>")
+            -- Open tomorrow's daily note
+            vim.keymap.set("n", "<leader>ft", ":ObsidianTomorrow<CR>")
+            end
     },
-    -- CmdLine Plugin
-    -- {
-    --     "folke/noice.nvim",
-    --     event = "VeryLazy",
-    --     dependencies = {
-    --       "MunifTanjim/nui.nvim",
-    --       "rcarriga/nvim-notify",
-    --     },
-    -- },
-
     -- Jupyter Notebook Support
     {
         "dccsillag/magma-nvim",
@@ -399,13 +429,69 @@ return {
         cmd = "Copilot",
         event = "InsertEnter",
         config = function()
-            -- Disable copilot by default (enable with :Copilot enable)
             vim.g.copilot_enabled = true
-            -- Disable default tab mapping for acceptance
-             -- vim.g.copilot_no_tab_map = true
+            vim.g.copilot_filetypes = {
+                ["*"] = true,
+                ["python"] = true,
+                ["markdown"] = true
+            }
+            
+            -- Add this to debug Copilot's status
+            vim.api.nvim_create_autocmd("FileType", {
+                pattern = {"python", "markdown"},
+                callback = function()
+                    print(vim.bo.filetype .. " Copilot status: " .. vim.fn['copilot#Enabled']())
+                end,
+            })
         end
     },
 
+    -- Lualine
+    {
+        'nvim-lualine/lualine.nvim',
+        dependencies = { 'nvim-tree/nvim-web-devicons' },
+        lazy = false,  -- Make sure it loads at startup
+        config = function()
+            vim.opt.laststatus = 3
+            vim.opt.showmode = false    -- Disable default mode display
+            vim.opt.ruler = false       -- Disable the ruler
+            require('lualine').setup({
+                options = {
+                    theme = "catppuccin",
+                    component_separators = { left = '', right = ''},
+                    section_separators = { left = '', right = ''},
+                    globalstatus = true,
+                },
+                sections = {
+                    lualine_a = {
+                        { 'mode', separator = { left = '' }, right_padding = 2 },
+                    },
+                    lualine_b = { 'branch', 'diff', 'diagnostics' },
+                    lualine_c = {
+                        { 'filename', path = 1 }
+                    },
+                    lualine_x = {
+                        'encoding',
+                        'fileformat',
+                        'filetype'
+                    },
+                    lualine_y = { 'progress' },
+                    lualine_z = {
+                        { 'location', separator = { right = '' }, left_padding = 2 },
+                    },
+                },
+                inactive_sections = {
+                    lualine_a = {},
+                    lualine_b = {},
+                    lualine_c = { 'filename' },
+                    lualine_x = { 'location' },
+                    lualine_y = {},
+                    lualine_z = {},
+                },
+                extensions = { 'fugitive', 'nvim-tree', 'toggleterm' },
+            })
+        end
+    },
     -- Auto-save
     {
         "pocco81/auto-save.nvim",
@@ -431,5 +517,17 @@ return {
                 debounce_delay = 135,
             })
         end
+    },
+
+    -- NeoTree
+    {
+        "nvim-neo-tree/neo-tree.nvim",
+        branch = "v3.x",
+        dependencies = {
+          "nvim-lua/plenary.nvim",
+          "nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
+          "MunifTanjim/nui.nvim",
+          -- "3rd/image.nvim", -- Optional image support in preview window: See `# Preview Mode` for more information
+        }
     },
 }
