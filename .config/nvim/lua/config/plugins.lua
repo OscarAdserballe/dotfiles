@@ -151,12 +151,34 @@ return {
             local mark = require("harpoon.mark")
             local ui = require("harpoon.ui")
 
-            vim.keymap.set("n", "<leader>a", mark.add_file)
+            -- StarCraft style: leader+shift+number to mark, leader+number to navigate
+            -- Mark files (Shift + number)
+            vim.keymap.set("n", "<leader>!", function() mark.set_current_at(1); print("File 1 marked") end)
+            vim.keymap.set("n", "<leader>@", function() mark.set_current_at(2); print("File 2 marked") end)
+            vim.keymap.set("n", "<leader>#", function() mark.set_current_at(3); print("File 3 marked") end)
+            vim.keymap.set("n", "<leader>$", function() mark.set_current_at(4); print("File 4 marked") end)
+            vim.keymap.set("n", "<leader>%", function() mark.set_current_at(5); print("File 5 marked") end)
+            vim.keymap.set("n", "<leader>^", function() mark.set_current_at(6); print("File 6 marked") end)
+            vim.keymap.set("n", "<leader>&", function() mark.set_current_at(7); print("File 7 marked") end)
+            vim.keymap.set("n", "<leader>*", function() mark.set_current_at(8); print("File 8 marked") end)
+            vim.keymap.set("n", "<leader>(", function() mark.set_current_at(9); print("File 9 marked") end)
+            vim.keymap.set("n", "<leader>)", function() mark.set_current_at(10); print("File 10 marked") end)
+
+            -- Navigate to marked files (number)
+            vim.keymap.set("n", "<leader>1", function() ui.nav_file(1) end)
+            vim.keymap.set("n", "<leader>2", function() ui.nav_file(2) end)
+            vim.keymap.set("n", "<leader>3", function() ui.nav_file(3) end)
+            vim.keymap.set("n", "<leader>4", function() ui.nav_file(4) end)
+            vim.keymap.set("n", "<leader>5", function() ui.nav_file(5) end)
+            vim.keymap.set("n", "<leader>6", function() ui.nav_file(6) end)
+            vim.keymap.set("n", "<leader>7", function() ui.nav_file(7) end)
+            vim.keymap.set("n", "<leader>8", function() ui.nav_file(8) end)
+            vim.keymap.set("n", "<leader>9", function() ui.nav_file(9) end)
+            vim.keymap.set("n", "<leader>0", function() ui.nav_file(10) end)
+            
+            -- Keep quick menu for overview
             vim.keymap.set("n", "<C-e>", ui.toggle_quick_menu)
-            vim.keymap.set("n", "<C-h>", function() ui.nav_file(1) end)
-            vim.keymap.set("n", "<C-j>", function() ui.nav_file(2) end)
-            vim.keymap.set("n", "<C-k>", function() ui.nav_file(3) end)
-            vim.keymap.set("n", "<C-l>", function() ui.nav_file(4) end)
+            
         end,
         dependencies = { "nvim-lua/plenary.nvim" }
     },
@@ -492,10 +514,28 @@ return {
             })
         end
     },
-    -- Auto-save
+    -- Auto-save and auto-reload
     {
         "pocco81/auto-save.nvim",
         config = function()
+            -- Set up autoread functionality
+            vim.o.autoread = true
+            -- Create an autocommand group for file change detection
+            local auto_read_group = vim.api.nvim_create_augroup("AutoReloadFile", { clear = true })
+            -- Create autocommands for file change detection
+            vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter" }, {
+                group = auto_read_group,
+                pattern = "*",
+                callback = function()
+                    local ft = vim.bo.filetype
+                    -- Only check for changes in non-special buffers
+                    if ft ~= "" and ft ~= "neo-tree" and vim.fn.getcmdwintype() == "" then
+                        vim.cmd("checktime")
+                    end
+                end,
+            })
+
+            -- Set up auto-save
             require("auto-save").setup({
                 enabled = true,
                 execution_message = {
@@ -515,6 +555,43 @@ return {
                 end,
                 write_all_buffers = false,
                 debounce_delay = 135,
+            })
+        end
+    },
+
+    -- Auto-reload files
+    {
+        "famiu/bufdelete.nvim",
+        config = function()
+            -- Create an autocommand group for file change detection
+            local auto_reload_group = vim.api.nvim_create_augroup("AutoReload", { clear = true })
+            
+            -- Enable autoread globally
+            vim.o.autoread = true
+            
+            -- Create a timer for checking file changes
+            local timer = vim.loop.new_timer()
+            timer:start(0, 250, vim.schedule_wrap(function()
+                -- Only check if Neovim is not in the middle of something
+                if vim.fn.getcmdwintype() == "" then
+                    -- Get current buffer number
+                    local bufnr = vim.api.nvim_get_current_buf()
+                    -- Get buffer's file path
+                    local filepath = vim.api.nvim_buf_get_name(bufnr)
+                    -- Only check if it's a real file
+                    if filepath ~= "" and vim.fn.filereadable(filepath) == 1 then
+                        vim.cmd('checktime ' .. bufnr)
+                    end
+                end
+            end))
+
+            -- Clean up timer when Neovim exits
+            vim.api.nvim_create_autocmd("VimLeave", {
+                group = auto_reload_group,
+                callback = function()
+                    timer:stop()
+                    timer:close()
+                end,
             })
         end
     },

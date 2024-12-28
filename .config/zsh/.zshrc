@@ -122,11 +122,8 @@ alias ttest="poetry run pytest -v -s -x --durations=0"
 # gcloud aliases
 alias gcpset="gcloud config set project"
 
-# ensure chmod +x ~/cli_scripts/{filename}.py
-alias llm="~/cli_scripts/cli_llm.py"
-alias rag="~/cli_scripts/cli_rag.py"
-alias latex="~/cli_scripts/cli_latex.py"
-
+# ensure chmod +x path/to/file.py 
+alias llm="~/cli_llm/cli.py"
 
 # modifying commands inplace
 alias ls="ls -1lth"
