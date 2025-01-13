@@ -113,8 +113,9 @@ return {
                     }
                 }
             })
-            vim.keymap.set("n", "<leader>fn", ":Telescope find_files cwd=~/OneDrive/Obsidian<CR>")
-            vim.keymap.set("n", "<leader>fg", ":Telescope live_grep cwd=~/OneDrive/Obsidian<CR>")
+            vim.keymap.set("n", "<leader>fn", ":Telescope find_files cwd=~/Google\\ Drive/My\\ Drive/Obsidian<CR>")
+            vim.keymap.set("n", "<leader>fg", ":Telescope live_grep cwd=~/Google\\ Drive/My\\ Drive/Obsidian<CR>")
+            vim.keymap.set("n", "<leader>fl", ":Telescope find_files cwd=~/Google\\ Drive/My\\ Drive/llm_sessions<CR>")
         end
     },
 
@@ -126,7 +127,7 @@ return {
                 ensure_installed = {
                     "python", "lua", "vim", "javascript",
                     "typescript", "json", "html", "css",
-                    "markdown", "bash"
+                    "markdown", "bash", "sql", "yaml"
                 },
                 highlight = {
                     enable = true,
@@ -231,9 +232,29 @@ return {
                 ensure_installed = {
                     'pyright',  -- Python LSP
                     'lua_ls',   -- Lua LSP
+                    'sqlls',    -- SQL LSP
+                    'emmet_ls', -- HTML/CSS/Jinja LSP
                 },
                 handlers = {
                     lsp.default_setup,
+                ["lua_ls"] = function()
+                    require('lspconfig').lua_ls.setup({
+                        settings = {
+                            Lua = {
+                                diagnostics = {
+                                    globals = { 'vim' }
+                                },
+                                workspace = {
+                                    library = vim.api.nvim_get_runtime_file("", true),
+                                    checkThirdParty = false,
+                                },
+                                telemetry = {
+                                    enable = false,
+                                },
+                            },
+                        },
+                    })
+                end,
                 }
             })
 
@@ -308,16 +329,17 @@ return {
     {
         "epwalsh/obsidian.nvim",
         lazy = false,
+        -- when to load the plugin: on specific events
         event = {
-            "BufReadPre " .. vim.fn.expand "~" .. "OneDrive/Obsidian/**.md",
-            "BufNewFile " .. vim.fn.expand "~" .. "OneDrive/Obsidian/**.md",
+            "BufReadPre " .. vim.fn.expand "~" .. "/Google\\ Drive/My\\ Drive/Obsidian/**.md",
+            "BufNewFile " .. vim.fn.expand "~" .. "/Google\\ Drive/My\\ Drive/Obsidian/**.md",
         },
         dependencies = {
             "nvim-lua/plenary.nvim",
         },
         config = function()
             require("obsidian").setup({
-                dir = "~/OneDrive/Obsidian",  -- Change this to your vault path
+                dir = "~/Google Drive/My Drive/Obsidian",  -- Change this to your vault path
                 notes_subdir = "Quick Notes",
                 note_id_func = function(title)
                     -- Convert the title to a valid filename
@@ -340,7 +362,6 @@ return {
                     min_chars = 2,
                 },
                 templates = {
-                    subdir = "Templates",
                     date_format = "%Y-%m-%d",
                     time_format = "%H:%M",
                 },
@@ -369,48 +390,6 @@ return {
             -- Open tomorrow's daily note
             vim.keymap.set("n", "<leader>ft", ":ObsidianTomorrow<CR>")
             end
-    },
-    -- Jupyter Notebook Support
-    {
-        "dccsillag/magma-nvim",
-        build = ":UpdateRemotePlugins",
-        config = function()
-            -- Magma configuration
-            vim.g.magma_automatically_open_output = true
-            vim.g.magma_image_provider = "kitty"
-            
-            -- Keymaps for Jupyter notebook operations
-            vim.keymap.set("n", "<leader>je", ":MagmaEvaluateOperator<CR>", { silent = true, desc = "Evaluate Operator" })
-            vim.keymap.set("n", "<leader>jl", ":MagmaEvaluateLine<CR>", { silent = true, desc = "Evaluate Line" })
-            vim.keymap.set("x", "<leader>jv", ":<C-u>MagmaEvaluateVisual<CR>", { silent = true, desc = "Evaluate Visual Selection" })
-            vim.keymap.set("n", "<leader>jc", ":MagmaReevaluateCell<CR>", { silent = true, desc = "Reevaluate Cell" })
-            vim.keymap.set("n", "<leader>jd", ":MagmaDelete<CR>", { silent = true, desc = "Delete Output" })
-            vim.keymap.set("n", "<leader>jo", ":MagmaShowOutput<CR>", { silent = true, desc = "Show Output" })
-            vim.keymap.set("n", "<leader>ji", ":MagmaInit<CR>", { silent = true, desc = "Initialize Kernel" })
-        end,
-    },
-
-    {
-        "goerz/jupytext.vim",
-        lazy = false,
-        init = function()
-            -- Configure jupytext to automatically sync .ipynb with .py files
-            vim.g.jupytext_fmt = 'py:percent'
-            vim.g.jupytext_style = 'hydrogen'
-        -- Enable automatic synchronization
-        vim.g.jupytext_sync_always = 1
-        -- Automatically convert ipynb files when reading/writing
-        vim.g.jupytext_enable_custom_codecells = 1
-        vim.g.jupytext_command = 'jupytext'
-        -- Set the filetype for .ipynb files
-        vim.cmd([[
-            augroup jupyter_notebooks
-                autocmd!
-                autocmd BufRead,BufNewFile *.ipynb set filetype=python
-                autocmd BufRead,BufNewFile *.ipynb setlocal conceallevel=0
-            augroup END
-        ]])
-        end
     },
 
     -- Avante:

@@ -50,7 +50,6 @@ vim.api.nvim_create_user_command('Term', function()
     local width = vim.o.columns
     local height = math.floor(vim.o.lines * 0.3)
     local buf = vim.api.nvim_create_buf(false, true)
-    
     vim.api.nvim_open_win(buf, true, {
         relative = 'editor',
         width = width,
@@ -61,7 +60,6 @@ vim.api.nvim_create_user_command('Term', function()
         border = 'rounded',
         title='Pop-up Terminal'
     })
-    
     vim.cmd('term')
     vim.cmd('startinsert')
 end, {})
@@ -71,3 +69,9 @@ vim.keymap.set('n', '<leader>t', ':Term<CR>', { noremap = true })
 
 -- setting keymap to open file explorer on left side
 vim.keymap.set('n', '<leader>b', ':Neotree toggle<CR>', { noremap = true })
+
+-- For session mode
+vim.keymap.set('n', '<leader>ls', function() require('llm_integration').run_llm_session("session") end, { noremap = true, silent = false, desc = "Run LLM Session" })
+
+-- For file mode
+vim.keymap.set('n', '<leader>ll', function() require('llm_integration').run_llm_session("file") end, { noremap = true, silent = false, desc = "Run LLM File" })

@@ -7,15 +7,22 @@ export ZSH="$HOME/.oh-my-zsh"
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time Oh My Zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
-# See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
-ZSH_THEME="robbyrussell"
+# Set theme
+ZSH_THEME="agnoster"
+
+# Set default user to hide user@hostname
+DEFAULT_USER=$USER
+
+# Customize agnoster theme to be more minimal
+prompt_context() {}  # This removes the username@hostname
+prompt_dir() {
+  prompt_segment blue black '%3~'  # Show only current directory
+  }
 
 [ -f "$HOME/.config/secrets.zsh" ] && source "$HOME/.config/secrets.zsh"
 
 plugins=(git)
 
-source $ZSH/oh-my-zsh.sh
-# Enable plugins
 plugins=(
     git
     zsh-autosuggestions
@@ -31,6 +38,32 @@ source $ZSH/oh-my-zsh.sh
 
 # setting Vim mode
 set -o vi
+
+# Change cursor shape for different vi modes
+cursor_mode() {
+    # See https://ttssh2.osdn.jp/manual/4/en/usage/tips/vim.html for cursor shapes
+    cursor_block='\e[2 q'
+    cursor_beam='\e[6 q'
+
+    function zle-keymap-select {
+        if [[ ${KEYMAP} == vicmd ]]; then
+            echo -ne $cursor_block
+        elif [[ ${KEYMAP} == main ]] ||
+             [[ ${KEYMAP} == viins ]] ||
+             [[ ${KEYMAP} = '' ]]; then
+            echo -ne $cursor_beam
+        fi
+    }
+
+    zle-line-init() {
+        echo -ne $cursor_beam
+    }
+
+    zle -N zle-keymap-select
+    zle -N zle-line-init
+}
+
+cursor_mode
 
 # Better completion settings
 zstyle ':completion:*' menu select  # Enable menu selection
@@ -55,13 +88,6 @@ setopt HIST_IGNORE_DUPS          # Don't record duplicates
 setopt HIST_FIND_NO_DUPS        # No duplicates in history search
 setopt HIST_REDUCE_BLANKS       # Remove extra blanks
 setopt HIST_VERIFY              # Verify history expansion
-#
-#export CLICOLOR=1
-PS1="%F{black}${PS1}"
-
-# If you're still seeing colored text for commands, also add:
-export LSCOLORS=exfxcxdxbxegedabagacad
-export PS1='%F{black}%~ %# '
 
 export PATH="/opt/homebrew/anaconda3/bin:$PATH"
 
@@ -76,11 +102,8 @@ export PATH="$PATH:/Applications/Visual Studio Code.app/Contents/Resources/app/b
 # ensuring poetry in path
 export PATH="/Users/oscarjuliusadserballe/.local/bin:$PATH"
 
-
-### SSH KEYS ###
-# start ssh-agent
-alias connect="sh ~/cli_scripts/connect_ssh.sh"
-### END SSH KEYS ###
+# setting up SSH connection
+alias connect="source ~/cli_scripts/connect_ssh.sh"
 
 # setting neovim as default
 alias vim="nvim"
@@ -90,40 +113,19 @@ export VISUAL='nvim'
 
 
 # directory aliases
-alias cdo="cd ~/OneDrive/Obsidian"
-alias cds="cd ~/OneDrive/5th\ Semester"
-alias cdy="cd ~/OneDrive/5th\ Semester/Yesterdays\ Wisdom/yesterdays-wisdom"
+alias cds="cd ~/Google\ Drive/My\ Drive/6th\ Semester"
 alias cda="cd ~/Arbejde/GitHub"
 alias cdb="cd -"
-alias cdconfig="cd ~/dotfiles/.config"
+alias cdd="cd ~/dotfiles/.config"
 
-# code aliases
-alias codes="code ~/Arbejde/GitHub/streamlit-app"
-alias codez="code ~/.zshrc"
-alias coded="code ~/dbt"
-
-alias sourcez="source ~/.zshrc"
+alias sourcez="source ~/dotfiles/.config/zsh/.zshrc"
 
 # dbt aliases
 alias dbtrun="dbt run --profiles-dir . --target prod -s"
 alias dbtcompile="dbt compile --profiles-dir . --target prod -s"
 
-# git aliases
-alias gs="git status"
-alias ga="git add"
-alias gc="git commit"
-alias gp="git push"
-alias gpl="git pull"
-alias gco="git checkout"
-alias gb="git branch"
-alias gitlog="git log --all --graph --decorate"
-alias ttest="poetry run pytest -v -s -x --durations=0"
-
-# gcloud aliases
-alias gcpset="gcloud config set project"
-
 # ensure chmod +x path/to/file.py 
-alias llm="~/cli_llm/cli.py"
+alias llm="python ~/cli_llm/cli.py"
 
 # modifying commands inplace
 alias ls="ls -1lth"
@@ -141,6 +143,10 @@ if [ -z "$TMUX" ]; then # checking that tmux is not already running to prevent n
     tmux attach -t obsidian || tmux new -s obsidian
 fi
 
+urlencode() {
+    jq -rn --arg str "${1}" '$str|@uri'
+}
+function urldecode() { : "${*//+/ }"; echo -e "${_//%/\\x}"; }
 
 # User configuration
 
