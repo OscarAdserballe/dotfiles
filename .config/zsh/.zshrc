@@ -108,6 +108,7 @@ alias connect="source ~/cli_scripts/connect_ssh.sh"
 # setting neovim as default
 alias vim="nvim"
 alias v.="nvim ."
+alias v="nvim ."
 export EDITOR='nvim'
 export VISUAL='nvim'
 

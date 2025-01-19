@@ -47,22 +47,37 @@ require('avante').setup({
 })
 
 vim.api.nvim_create_user_command('Term', function()
-    local width = vim.o.columns
-    local height = math.floor(vim.o.lines * 0.3)
-    local buf = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_open_win(buf, true, {
-        relative = 'editor',
-        width = width,
-        height = height,
-        col = 0,
-        row = vim.o.lines - height,
-        style = 'minimal',
-        border = 'rounded',
-        title='Pop-up Terminal'
-    })
+    -- Create a new split at the bottom with 30% height
+    vim.cmd('botright split')
+    vim.cmd('resize ' .. math.floor(vim.o.lines * 0.3))
+    
+    -- Open terminal in the new split
     vim.cmd('term')
     vim.cmd('startinsert')
 end, {})
+
+vim.api.nvim_create_autocmd('TermOpen', {
+    callback = function()
+        -- Disable line numbers in terminal
+        vim.opt_local.number = false
+        vim.opt_local.relativenumber = false
+        -- Enable mouse support for terminal
+        vim.opt_local.mouse = 'a'
+        -- Set different color scheme for terminal buffer only
+        vim.opt_local.winhighlight = 'Normal:TermBackground'
+        vim.api.nvim_set_hl(0, 'TermBackground', { bg = '#000000' })  -- Deep navy blue
+        -- Start in insert mode
+        vim.cmd('startinsert')
+        -- Key mappings
+        -- exiting termianl mode with regular escape key: "in terminal mode, <C-\><C-n> is equivalent to <Esc>"
+        vim.keymap.set('t', 'vv', [[<C-\><C-n>]], {buffer = true})
+
+        vim.keymap.set('n', 'i', 'i', {buffer = true})
+        vim.keymap.set('n', 'a', 'a', {buffer = true})
+        -- Enable clipboard integration
+        vim.opt_local.clipboard = 'unnamedplus'
+    end
+})
 
 -- setting keymap to open terminal with new command, Term
 vim.keymap.set('n', '<leader>t', ':Term<CR>', { noremap = true })
