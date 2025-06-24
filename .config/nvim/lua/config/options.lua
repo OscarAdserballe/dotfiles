@@ -52,13 +52,28 @@ vim.api.nvim_set_hl(0, 'CursorInsert', { bg = '#A6D189', fg = '#303446' })
 
 -- Text wrapping for specific file types
 vim.api.nvim_create_autocmd("FileType", {
-    pattern = { "markdown", "txt", "text", "tex" },
+    pattern = { "markdown", "txt", "text", "tex", "latex", "plaintex" },
     callback = function()
         vim.opt_local.wrap = true        -- Enable line wrapping
         vim.opt_local.linebreak = true   -- Break lines at word boundaries
         vim.opt_local.breakindent = true -- Preserve indentation
         vim.opt_local.spell = true       -- Enable spell checking
         vim.opt_local.conceallevel = 2   -- Hide markup syntax
+    end
+})
+
+vim.api.nvim_create_autocmd({"BufRead", "BufNewFile"}, {
+    pattern = {"*.tex", "*.sty", "*.cls", "*.bib"},
+    callback = function()
+        vim.opt_local.wrap = true
+        vim.opt_local.linebreak = true
+        vim.opt_local.breakindent = true
+        vim.opt_local.spell = true
+        vim.opt_local.conceallevel = 2
+        -- Force the filetype to be tex if not already set
+        if vim.bo.filetype ~= "tex" then
+            vim.bo.filetype = "tex"
+        end
     end
 })
 

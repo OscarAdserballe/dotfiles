@@ -1,6 +1,7 @@
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
+
 require('custom.auto-session').setup()
 
 -- Bootstrap lazy.nvim
@@ -34,7 +35,7 @@ require('avante').setup({
   auto_suggestions_provider = "claude",
   claude = {
     endpoint = "https://api.anthropic.com",
-    model = "claude-3-5-sonnet-20241022",
+    model = "claude-3-7-sonnet-latest",
     temperature = 0,
     max_tokens = 4096,
   },
@@ -54,9 +55,7 @@ vim.api.nvim_create_user_command('Term', function()
     -- Open terminal in the new split
     vim.cmd('term')
     vim.cmd('startinsert')
-end, {})
-
-vim.api.nvim_create_autocmd('TermOpen', {
+end, {}) vim.api.nvim_create_autocmd('TermOpen', {
     callback = function()
         -- Disable line numbers in terminal
         vim.opt_local.number = false
@@ -90,3 +89,57 @@ vim.keymap.set('n', '<leader>ls', function() require('llm_integration').run_llm_
 
 -- For file mode
 vim.keymap.set('n', '<leader>ll', function() require('llm_integration').run_llm_session("file") end, { noremap = true, silent = false, desc = "Run LLM File" })
+
+-- in terminal mode set <Esc> to <C-\><C-n>
+vim.keymap.set('t', '<Esc>', '<C-\\><C-n>')
+
+
+vim.keymap.set('n', '<leader>fb', ':enew | setlocal filetype=sql<CR>', { desc = '[F]ile [B]uffer (new SQL)', silent = true, nowait = true })
+
+-- 2. Function and command to RUN a BigQuery query on the current buffer's content
+local function BQRunQuery()
+  -- Get all lines from the current buffer
+  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+
+  -- Check if the buffer is empty
+  if #lines == 0 or (#lines == 1 and #lines[1] == 0) then
+    vim.notify("Buffer is empty, nothing to run.", vim.log.levels.WARN)
+    return
+  end
+
+  -- Use vim.fn.systemlist to run the command and capture the output.
+  -- The second argument passes the buffer content via stdin.
+  vim.notify("Running BigQuery query...", vim.log.levels.INFO)
+  local output = vim.fn.systemlist("bq query --use_legacy_sql=false", lines)
+
+  -- Check for errors during command execution
+  if vim.v.shell_error ~= 0 then
+     vim.notify("BQ command failed. Is 'bq' in your PATH and are you authenticated?", vim.log.levels.ERROR)
+     -- Prepend the error message to the output for context
+     table.insert(output, 1, "Command failed with exit code: " .. vim.v.shell_error)
+  end
+
+  vim.cmd('new')
+
+  -- Set buffer options for a clean "output" window
+  vim.bo.buftype = 'nofile' -- Not a real file
+  vim.bo.bufhidden = 'wipe' -- Close it without saving
+  vim.bo.swapfile = false   -- No swap file
+  vim.bo.readonly = true    -- Make it read-only
+  vim.bo.filetype = 'text'  -- Set filetype for syntax highlighting
+  vim.wo.wrap = false       -- Disable line wrapping to allow horizontal scrolling
+  vim.wo.sidescrolloff = 5  -- Keep 5 columns visible when scrolling horizontally
+
+  -- Insert the captured output into the new buffer
+  vim.api.nvim_buf_set_lines(0, 0, -1, false, output)
+  vim.notify("Query complete.", vim.log.levels.INFO)
+end
+-- Create the user command :BQRunQuery
+vim.api.nvim_create_user_command('BQRunQuery', BQRunQuery, {
+  bang = false,
+  desc = "Perform a BigQuery query on the current buffer's SQL content"
+})
+
+-- Map the function to <leader>fq for quick execution
+vim.keymap.set('n', '<leader>fq', ':BQRunQuery<CR>', { desc = '[F]ire BigQuery [Q]uery', silent = true, nowait = true })
+

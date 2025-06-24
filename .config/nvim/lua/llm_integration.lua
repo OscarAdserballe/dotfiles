@@ -29,15 +29,11 @@ function M.run_llm_session(mode)
   -- Construct the command using full path
   local cmd
   if mode == "session" then
-    cmd = string.format("python ~/cli_llm/cli.py run-session %s", vim.fn.shellescape(session_name))
+    cmd = string.format("python ~/Projects/cli_llm/session_cli.py run-session %s", vim.fn.shellescape(session_name))
   else
-    cmd = string.format("python ~/cli_llm/cli.py run-file %s", vim.fn.shellescape(filepath))
+    cmd = string.format("python ~/Projects/cli_llm/session_cli.py run-file %s", vim.fn.shellescape(filepath))
   end
   
-  -- Variables to collect output
-  local stderr_data = {}
-  local has_error = false
-
   -- Use vim.loop to run the command asynchronously
   local stdout = vim.loop.new_pipe(false)
   local stderr = vim.loop.new_pipe(false)
@@ -66,14 +62,8 @@ function M.run_llm_session(mode)
     vim.loop.close(handle)
   end)
   
-    -- Handle stdout (just for logging)
-    stdout:read_start(function(err, data)
+    stdout:read_start(function(err)
     assert(not err, err)
-    if data then
-      vim.schedule(function()
-        vim.notify(data, vim.log.levels.INFO)
-      end)
-    end
   end)
 end
 

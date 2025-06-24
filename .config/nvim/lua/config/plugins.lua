@@ -49,7 +49,7 @@ return {
                             information = { "italic" },
                         },
                         underlines = {
-                            errors = { "underline" },
+                            errors = { "underline" }, 
                             hints = { "underline" },
                             warnings = { "underline" },
                             information = { "underline" },
@@ -99,6 +99,15 @@ return {
                         "%.zip",
                         "%.log",
                         "%.txt",
+                        -- LaTeX auxiliary files
+                        "%.aux",
+                        "%.bcf",
+                        "%.lof",
+                        "%.log",
+                        "%.xml",
+                        "%.nav",
+                        "%.snm",
+                        "%.toc",
                     }
                 },
                 pickers = {
@@ -211,26 +220,11 @@ return {
         config = function()
             local lsp = require('lsp-zero').preset({})
 
-            lsp.on_attach(function(client, bufnr)
-                -- see :help lsp-zero-keybindings
-                -- to learn the available actions
-                lsp.default_keymaps({buffer = bufnr})
-            end)
-
-        lsp.on_attach(function(client, bufnr)
-            -- Add this line to ensure Copilot works alongside LSP
-            if client.name == "pyright" then
-                client.server_capabilities.documentFormattingProvider = false
-            end
-            
-            lsp.default_keymaps({buffer = bufnr})
-        end)
-
             -- Configure mason to automatically install LSP servers
             require('mason').setup({})
             require('mason-lspconfig').setup({
                 ensure_installed = {
-                    'pyright',  -- Python LSP
+                    'pyright',
                     'lua_ls',   -- Lua LSP
                     'sqlls',    -- SQL LSP
                     'emmet_ls', -- HTML/CSS/Jinja LSP
@@ -339,7 +333,7 @@ return {
         },
         config = function()
             require("obsidian").setup({
-                dir = "~/Google Drive/My Drive/Obsidian",  -- Change this to your vault path
+                dir = "~/Google Drive/My Drive/Obsidian",
                 notes_subdir = "Quick Notes",
                 note_id_func = function(title)
                     -- Convert the title to a valid filename
@@ -389,37 +383,75 @@ return {
             vim.keymap.set("n", "<leader>fy", ":ObsidianYesterday<CR>")
             -- Open tomorrow's daily note
             vim.keymap.set("n", "<leader>ft", ":ObsidianTomorrow<CR>")
+
+            -- Function to open a specific Obsidian file
+            local function open_obsidian_file(file_path)
+                -- Construct the full path (assuming your vault path)
+                local full_path = "~/Google Drive/My Drive/Obsidian/" .. file_path
+                -- Expand the path and open the file
+                vim.cmd('edit ' .. vim.fn.expand(full_path))
+            end
+
+            vim.keymap.set("n", "<leader>fo", function()
+                open_obsidian_file("to-do.md")
+            end)
             end
     },
 
     -- Avante:
    {
-      "yetone/avante.nvim",
+     "yetone/avante.nvim",
       event = "VeryLazy",
-      version = false, -- latest changes
+      version = false, -- Set this to "*" to always pull the latest release version, or set it to false to update to the latest code changes.
       opts = {
-        -- config will go in setup()
-      },
+          claude = {
+            endpoint = "https://api.anthropic.com",
+            model = "claude-3-7-sonnet-latest",
+            timeout = 30000, -- Timeout in milliseconds
+            temperature = 0,
+            max_tokens = 4096,
+            disable_tools = true, -- disable tools!
+          },
+        },
+      -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
       build = "make",
+      -- build = "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false" -- for windows
       dependencies = {
+        "nvim-treesitter/nvim-treesitter",
         "stevearc/dressing.nvim",
         "nvim-lua/plenary.nvim",
         "MunifTanjim/nui.nvim",
-        "hrsh7th/nvim-cmp",
-        "nvim-tree/nvim-web-devicons",
+        --- The below dependencies are optional,
+        "echasnovski/mini.pick", -- for file_selector provider mini.pick
+        "nvim-telescope/telescope.nvim", -- for file_selector provider telescope
+        "hrsh7th/nvim-cmp", -- autocompletion for avante commands and mentions
+        "ibhagwan/fzf-lua", -- for file_selector provider fzf
+        "nvim-tree/nvim-web-devicons", -- or echasnovski/mini.icons
+        "zbirenbaum/copilot.lua", -- for providers='copilot'
         {
+          -- support for image pasting
           "HakonHarnes/img-clip.nvim",
           event = "VeryLazy",
           opts = {
+            -- recommended settings
             default = {
               embed_image_as_base64 = false,
               prompt_for_file_name = false,
               drag_and_drop = {
                 insert_mode = true,
               },
+              -- required for Windows users
               use_absolute_path = true,
             },
           },
+        },
+        {
+          -- Make sure to set this up properly if you have lazy=true
+          'MeanderingProgrammer/render-markdown.nvim',
+          opts = {
+            file_types = { "markdown", "Avante" },
+          },
+          ft = { "markdown", "Avante" },
         },
       },
     },
@@ -436,14 +468,7 @@ return {
                 ["python"] = true,
                 ["markdown"] = true
             }
-            
-            -- Add this to debug Copilot's status
-            vim.api.nvim_create_autocmd("FileType", {
-                pattern = {"python", "markdown"},
-                callback = function()
-                    print(vim.bo.filetype .. " Copilot status: " .. vim.fn['copilot#Enabled']())
-                end,
-            })
+
         end
     },
 
@@ -524,11 +549,18 @@ return {
                 },
                 trigger_events = {"InsertLeave", "TextChanged"},
                 -- Function to determine whether to save
-                condition = function(buf)
+                condition = function()
                     local fn = vim.fn.expand("%:t")
+                    local fp = vim.fn.expand("%:p")
                     local utils = require("auto-save.utils.data")
+                    
+                    -- Skip auto-saving Neovim config files
+                    if fp:match("%.config/nvim") then
+                        return false
+                    end
+                    
                     if fn ~= "" and utils.not_in(fn, {}) then
-                        return true
+return true
                     end
                     return false
                 end,
@@ -581,9 +613,110 @@ return {
         branch = "v3.x",
         dependencies = {
           "nvim-lua/plenary.nvim",
-          "nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
+          "nvim-tree/nvim-web-devicons",
           "MunifTanjim/nui.nvim",
-          -- "3rd/image.nvim", -- Optional image support in preview window: See `# Preview Mode` for more information
-        }
+        },
+        config = function()
+            require("neo-tree").setup({
+                close_if_last_window = true,
+                enable_git_status = true,
+                enable_diagnostics = true,
+                window = {
+                    width = 30,
+                    mappings = {
+                        ["<space>"] = "none",
+                    }
+                },
+                filesystem = {
+                    filtered_items = {
+                        visible = false,
+                        hide_dotfiles = false,
+                        hide_gitignored = false,
+                        hide_by_name = {
+                            -- LaTeX auxiliary files
+                            ".aux",
+                            ".bcf",
+                            ".lof",
+                            ".log",
+                            ".xml",
+                            ".nav",
+                            ".snm",
+                            ".toc",
+                        },
+                        never_show = {
+                            ".DS_Store",
+                        },
+                    },
+                },
+            })
+            -- Toggle NeoTree with <leader>e
+            vim.keymap.set('n', '<leader>e', ':Neotree toggle<CR>', { silent = true })
+        end
+    },    
+    -- Jupyter Notebook support
+    {
+        'quarto-dev/quarto-nvim',
+        dependencies = {
+            'jmbuhr/otter.nvim',
+            'hrsh7th/nvim-cmp',
+        },
+        config = function()
+            require('quarto').setup({
+                lspFeatures = {
+                    enabled = true,
+                    languages = { 'python', 'julia', 'bash' },
+                    diagnostics = {
+                        enabled = true,
+                        triggers = { "BufWrite" }
+                    },
+                    completion = {
+                        enabled = true
+                    },
+                }
+            })
+        end
     },
+
+    -- Jupyter Notebook support
+    {
+        'goerz/jupytext.vim',
+        config = function()
+            -- Set default format for jupytext
+            vim.g.jupytext_fmt = 'py:percent'
+            -- Automatically sync with .ipynb files
+            vim.g.jupytext_enable_paired_ipynb = 1
+        end
+    },
+
+    -- Iron
+    {
+        "hkupty/iron.nvim",
+        config = function()
+            local iron = require("iron.core")
+            iron.setup({
+                config = {
+                    scratch_repl = true,
+                    repl_definition = {
+                        python = {
+                            command = { "ipython" },
+                            format = require("iron.fts.common").bracketed_paste,
+                        },
+                    },
+                    repl_open_cmd = require("iron.view").split.horizontal.botright(15),
+                },
+                -- If the highlight is on, you can change how it looks
+                highlight = {
+                    italic = true,
+                },
+                ignore_blank_lines = true, -- ignore blank lines when sending visual select lines
+            })
+    
+            -- iron also has a list of commands, see :h iron-commands for all available commands
+            vim.keymap.set('n', '<leader>rs', '<cmd>IronRepl<cr>')
+            -- Send visual selection to REPL
+            vim.keymap.set('v', '<leader>rc', '<cmd>\'<,\'>IronSend<cr>')
+            -- Send current line to REPL
+            vim.keymap.set('n', '<leader>rl', '<cmd>.IronSend<cr>')
+        end,
+    }
 }
