@@ -49,7 +49,7 @@ return {
                             information = { "italic" },
                         },
                         underlines = {
-                            errors = { "underline" }, 
+                            errors = { "underline" },
                             hints = { "underline" },
                             warnings = { "underline" },
                             information = { "underline" },
@@ -61,33 +61,29 @@ return {
             vim.cmd.colorscheme "catppuccin"
 
             -- Autocommand for Markdown files
-            vim.api.nvim_create_autocmd("FileType", {
-                pattern = "markdown",
+            vim.api.nvim_create_autocmd("BufEnter", {
+                pattern="*",
                 callback = function()
-                    vim.cmd("colorscheme catppuccin-latte")
-                    -- Override highlight groups for a minimalist white look
-                    vim.api.nvim_set_hl(0, "Normal", { bg = "#FFFFFF", fg = "#333333" }) -- White background, dark grey text
-                    vim.api.nvim_set_hl(0, "Comment", { fg = "#888888", italic = false }) -- Light grey comments, no italic
-                    vim.api.nvim_set_hl(0, "markdownH1", { fg = "#000000", bold = true }) -- Black, bold headers
-                    vim.api.nvim_set_hl(0, "markdownH2", { fg = "#000000", bold = true })
-                    vim.api.nvim_set_hl(0, "markdownH3", { fg = "#000000", bold = true })
-                    vim.api.nvim_set_hl(0, "markdownH4", { fg = "#000000", bold = true })
-                    vim.api.nvim_set_hl(0, "markdownH5", { fg = "#000000", bold = true })
-                    vim.api.nvim_set_hl(0, "markdownH6", { fg = "#000000", bold = true })
-                    vim.api.nvim_set_hl(0, "markdownCode", { bg = "#F0F0F0", fg = "#333333" }) -- Light grey background for inline code
-                    vim.api.nvim_set_hl(0, "markdownCodeBlock", { bg = "#F0F0F0", fg = "#333333" }) -- Light grey background for code blocks
-                    vim.api.nvim_set_hl(0, "markdownLinkText", { fg = "#0077CC", underline = true }) -- Blue links, underlined
-                    vim.api.nvim_set_hl(0, "markdownURL", { fg = "#0077CC", underline = true }) -- Blue URLs, underlined
-                    vim.api.nvim_set_hl(0, "markdownListMarker", { fg = "#555555" }) -- Darker list markers
-                    vim.api.nvim_set_hl(0, "ColorColumn", { bg = "#FFFFFF" }) -- White background for ColorColumn
-                end,
-            })
-
-            -- Autocommand for Terminal buffers
-            vim.api.nvim_create_autocmd("FileType", {
-                pattern = "terminal",
-                callback = function()
-                    vim.cmd("colorscheme catppuccin-frappe")
+                    if vim.bo.filetype == "markdown" then
+                        vim.cmd("colorscheme catppuccin-latte")
+                        -- Override highlight groups for a minimalist white look
+                        vim.api.nvim_set_hl(0, "Normal", { bg = "#FFFFFF", fg = "#333333" }) -- White background, dark grey text
+                        vim.api.nvim_set_hl(0, "Comment", { fg = "#888888", italic = false }) -- Light grey comments, no italic
+                        vim.api.nvim_set_hl(0, "markdownH1", { fg = "#000000", bold = true }) -- Black, bold headers
+                        vim.api.nvim_set_hl(0, "markdownH2", { fg = "#000000", bold = true })
+                        vim.api.nvim_set_hl(0, "markdownH3", { fg = "#000000", bold = true })
+                        vim.api.nvim_set_hl(0, "markdownH4", { fg = "#000000", bold = true })
+                        vim.api.nvim_set_hl(0, "markdownH5", { fg = "#000000", bold = true })
+                        vim.api.nvim_set_hl(0, "markdownH6", { fg = "#000000", bold = true })
+                        vim.api.nvim_set_hl(0, "markdownCode", { bg = "#F0F0F0", fg = "#333333" }) -- Light grey background for inline code
+                        vim.api.nvim_set_hl(0, "markdownCodeBlock", { bg = "#F0F0F0", fg = "#333333" }) -- Light grey background for code blocks
+                        vim.api.nvim_set_hl(0, "markdownLinkText", { fg = "#0077CC", underline = true }) -- Blue links, underlined
+                        vim.api.nvim_set_hl(0, "markdownURL", { fg = "#0077CC", underline = true }) -- Blue URLs, underlined
+                        vim.api.nvim_set_hl(0, "markdownListMarker", { fg = "#555555" }) -- Darker list markers
+                        vim.api.nvim_set_hl(0, "ColorColumn", { bg = "#FFFFFF" }) -- White background for ColorColumn
+                    else
+                        vim.cmd("colorscheme catppuccin-mocha")
+                    end
                 end,
             })
         end,
