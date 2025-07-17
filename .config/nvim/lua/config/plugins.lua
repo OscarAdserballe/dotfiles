@@ -6,7 +6,7 @@ return {
         priority = 1000,
         config = function()
             require("catppuccin").setup({
-                flavour = "mocha", -- latte, frappe, macchiato, mocha
+                flavour = "mocha", -- default
                 transparent_background = false,
                 term_colors = true,
                 dim_inactive = {
@@ -57,9 +57,39 @@ return {
                     },
                 },
             })
-            vim.cmd.colorscheme "catppuccin"   
-            vim.api.nvim_set_hl(0, "Cursor", { bg = "#F4B8E4" })
-            vim.api.nvim_set_hl(0, "CursorLine", { bg = "#303446" })
+            -- Set the default colorscheme *before* defining autocommands
+            vim.cmd.colorscheme "catppuccin"
+
+            -- Autocommand for Markdown files
+            vim.api.nvim_create_autocmd("FileType", {
+                pattern = "markdown",
+                callback = function()
+                    vim.cmd("colorscheme catppuccin-latte")
+                    -- Override highlight groups for a minimalist white look
+                    vim.api.nvim_set_hl(0, "Normal", { bg = "#FFFFFF", fg = "#333333" }) -- White background, dark grey text
+                    vim.api.nvim_set_hl(0, "Comment", { fg = "#888888", italic = false }) -- Light grey comments, no italic
+                    vim.api.nvim_set_hl(0, "markdownH1", { fg = "#000000", bold = true }) -- Black, bold headers
+                    vim.api.nvim_set_hl(0, "markdownH2", { fg = "#000000", bold = true })
+                    vim.api.nvim_set_hl(0, "markdownH3", { fg = "#000000", bold = true })
+                    vim.api.nvim_set_hl(0, "markdownH4", { fg = "#000000", bold = true })
+                    vim.api.nvim_set_hl(0, "markdownH5", { fg = "#000000", bold = true })
+                    vim.api.nvim_set_hl(0, "markdownH6", { fg = "#000000", bold = true })
+                    vim.api.nvim_set_hl(0, "markdownCode", { bg = "#F0F0F0", fg = "#333333" }) -- Light grey background for inline code
+                    vim.api.nvim_set_hl(0, "markdownCodeBlock", { bg = "#F0F0F0", fg = "#333333" }) -- Light grey background for code blocks
+                    vim.api.nvim_set_hl(0, "markdownLinkText", { fg = "#0077CC", underline = true }) -- Blue links, underlined
+                    vim.api.nvim_set_hl(0, "markdownURL", { fg = "#0077CC", underline = true }) -- Blue URLs, underlined
+                    vim.api.nvim_set_hl(0, "markdownListMarker", { fg = "#555555" }) -- Darker list markers
+                    vim.api.nvim_set_hl(0, "ColorColumn", { bg = "#FFFFFF" }) -- White background for ColorColumn
+                end,
+            })
+
+            -- Autocommand for Terminal buffers
+            vim.api.nvim_create_autocmd("FileType", {
+                pattern = "terminal",
+                callback = function()
+                    vim.cmd("colorscheme catppuccin-frappe")
+                end,
+            })
         end,
     },
 
@@ -349,13 +379,15 @@ return {
             end,
                 daily_notes = {
                     folder = "Daily",
-                    date_format = "%Y-%m-%d"
+                    date_format = "%Y-%m-%d",
+                    template="daily.md"
                 },
                 completion = {
                     nvim_cmp = true,
                     min_chars = 2,
                 },
                 templates = {
+                    folder = "Templates",
                     date_format = "%Y-%m-%d",
                     time_format = "%H:%M",
                 },
