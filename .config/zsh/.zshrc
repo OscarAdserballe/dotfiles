@@ -181,3 +181,4 @@ dbtc() {
 
 alias transcript="python ~/Projects/get_transcripts/yt_transcript.py"
 alias newspaper="python -m newspaper --output-format=text --url"
+alias port-plan="python3 ~/dotfiles/scripts/claude-plan-copier.py"
