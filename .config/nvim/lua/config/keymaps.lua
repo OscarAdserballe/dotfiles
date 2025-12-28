@@ -4,11 +4,6 @@ local keymap = vim.keymap
 -- Set leader key
 vim.g.mapleader = " "
 
--- General keymaps
-keymap.set("n", "<leader>pv", vim.cmd.Ex)  -- File explorer
-keymap.set("n", "<leader>w", ":w<CR>")     -- Save
-keymap.set("n", "<leader>q", ":q<CR>")     -- Quit
-
 -- Split window navigation
 keymap.set("n", "<C-h>", "<C-w>h")
 keymap.set("n", "<C-j>", "<C-w>j")
@@ -21,6 +16,15 @@ keymap.set("n", "<leader>fs", "<cmd>Telescope live_grep<cr>")
 keymap.set("n", "<leader>fc", "<cmd>Telescope grep_string<cr>")
 keymap.set("n", "<leader>fb", "<cmd>Telescope buffers<cr>")
 keymap.set("n", "<leader>fh", "<cmd>Telescope help_tags<cr>")
+vim.keymap.set("n", "<leader>fn", ":Telescope find_files cwd=~/Google\\ Drive/My\\ Drive/Obsidian<CR>")
+vim.keymap.set("n", "<leader>fg", ":Telescope live_grep cwd=~/Google\\ Drive/My\\ Drive/Obsidian<CR>")
+vim.keymap.set("n", "<leader>fl", ":Telescope find_files cwd=~/Google\\ Drive/My\\ Drive/llm_sessions<CR>")
+
+-- Obsidian keymaps
+vim.keymap.set("n", "<leader>fp", ":ObsidianNew<CR>") -- regular new note
+vim.keymap.set("n", "<leader>fd", ":ObsidianToday<CR>") -- daily note
+vim.keymap.set("n", "<leader>fy", ":ObsidianYesterday<CR>") --yesterday's daily note
+vim.keymap.set("n", "<leader>ft", ":ObsidianTomorrow<CR>") -- tomorrow's daily note
 
 -- Undotree
 keymap.set("n", "<leader>u", vim.cmd.UndotreeToggle)
@@ -28,34 +32,48 @@ keymap.set("n", "<leader>u", vim.cmd.UndotreeToggle)
 -- Git
 keymap.set("n", "<leader>gs", vim.cmd.Git)
 
--- Line movement
-vim.keymap.set('n', '<A-Up>', ':m .-2<CR>==', { silent = true })
-vim.keymap.set('n', '<A-Down>', ':m .+1<CR>==', { silent = true })
-vim.keymap.set('v', '<A-Up>', ":m '<-2<CR>gv=gv", { silent = true })
-vim.keymap.set('v', '<A-Down>', ":m '>+1<CR>gv=gv", { silent = true })
+-- Toggle NeoTree 
+vim.keymap.set('n', '<leader>s', ':Neotree toggle<CR>', { silent = true })
+vim.keymap.set('n', '<leader>b', ':Neotree toggle<CR>', { noremap = true })
 
--- Line duplication
-vim.keymap.set('n', '<A-S-Up>', 'yyP', { silent = true })
-vim.keymap.set('n', '<A-S-Down>', 'yyp', { silent = true })
-vim.keymap.set('v', '<A-S-Up>', 'y`>p', { silent = true })
-vim.keymap.set('v', '<A-S-Down>', 'y`>p', { silent = true })
+-- LLM Integration
+vim.keymap.set('n', '<leader>ll', function() require('llm_integration').run_llm_session("file") end, { noremap = true, silent = false, desc = "Run LLM File" })
+vim.keymap.set("n", "<leader>ls", ":edit ~/Google\\ Drive/My\\ Drive//llm_sessions/base/base.md<CR>", {
+  noremap = true,
+  silent = true,
+  desc = "Open a base-llm",
+})
 
--- LSP keybindings (moved from init.lua)
-local function setup_lsp_keymaps(client, bufnr)
-    local opts = { buffer = bufnr, remap = false }
-    vim.keymap.set("n", "gd", function() vim.lsp.buf.definition() end, opts)
-    vim.keymap.set("n", "<leader>vws", function() vim.lsp.buf.workspace_symbol() end, opts)
-    vim.keymap.set("n", "K", function() vim.lsp.buf.hover() end, opts)
-    vim.keymap.set("n", "<leader>vd", function() vim.diagnostic.open_float() end, opts)
-    vim.keymap.set("n", "[d", function() vim.diagnostic.goto_next() end, opts)
-    vim.keymap.set("n", "]d", function() vim.diagnostic.goto_prev() end, opts)
-    vim.keymap.set("n", "<leader>vca", function() vim.lsp.buf.code_action() end, opts)
-    vim.keymap.set("n", "<leader>vrr", function() vim.lsp.buf.references() end, opts)
-    vim.keymap.set("n", "<leader>vrn", function() vim.lsp.buf.rename() end, opts)
-    vim.keymap.set("i", "<C-h>", function() vim.lsp.buf.signature_help() end, opts)
-end
+-- Copilot overriding keymap
+-- vim.keymap.set('i', '<C-j>', 'copilot#Accept("\\<CR>")', {
+--     expr = true,
+--     replace_keycodes = false
+-- })
+-- vim.g.copilot_no_tab_map = true
+
+
+-- NOTE: We don't want to use { and } to navigate anymore, so removing those keymaps.
+vim.keymap.set('n', '{', '', { noremap = true, silent = true })
+vim.keymap.set('v', '{', '', { noremap = true, silent = true })
+vim.keymap.set('n', '}', '', { noremap = true, silent = true })
+vim.keymap.set('v', '}', '', { noremap = true, silent = true })
+
+-- Center search results
+vim.keymap.set('n', 'n', 'nzz', { noremap = true, silent = true })
+vim.keymap.set('n', 'N', 'Nzz', { noremap = true, silent = true })
+
+-- Center cursor when navigating with bufferwindow 
+vim.keymap.set('n', '<C-u>', '<C-u>zz', { noremap = true, silent = true })
+vim.keymap.set('v', '<C-u>', '<C-u>zz', { noremap = true, silent = true })
+vim.keymap.set('n', '<C-d>', '<C-d>zz', { noremap = true, silent = true })
+vim.keymap.set('v', '<C-d>', '<C-d>zz', { noremap = true, silent = true })
+
+-- Preserve buffer when pasting using space p
+vim.keymap.set('n', '<leader>p', '"_dP', { noremap = true, silent = true, desc = "Paste without changing default register" })
+vim.keymap.set('v', '<leader>p', '"_dP', { noremap = true, silent = true, desc = "Paste without changing default register" })
 
 -- Export the setup function for use in LSP configuration
 return {
     setup_lsp_keymaps = setup_lsp_keymaps
 }
+

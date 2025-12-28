@@ -24,9 +24,6 @@ opt.cursorline = true
 -- Appearance
 opt.signcolumn = "yes"
 
--- Clipboard
-opt.clipboard:append("unnamedplus")
-
 -- Split windows
 opt.splitright = true
 opt.splitbelow = true
@@ -87,7 +84,13 @@ vim.api.nvim_create_autocmd("FileType", {
     end
 })
 
--- Tmux compatibility
-if vim.env.TMUX then
-    vim.opt.clipboard = 'unnamedplus'
-end
+vim.api.nvim_create_autocmd("FileType", {
+    pattern = { "typescript", "typescriptreact" }, -- Apply to both .ts and .tsx files
+    callback = function()
+        vim.opt_local.tabstop = 2       -- A literal tab character will display as 2 spaces
+        vim.opt_local.shiftwidth = 2    -- Indent by 2 spaces
+        vim.opt_local.expandtab = true  -- Use spaces instead of tabs
+        vim.opt_local.autoindent = true -- Basic auto-indent
+        vim.opt_local.smartindent = true -- Smarter auto-indent for JS/TS
+    end,
+})

@@ -89,7 +89,7 @@ return {
         end,
     },
 
-    -- Telescope
+    -- Telescope for file navigation and searching
     {
         "nvim-telescope/telescope.nvim",
         dependencies = { "nvim-lua/plenary.nvim" },
@@ -138,22 +138,17 @@ return {
                 },
                 pickers = {
                     find_files = {
-                        -- hidden = true,
                         previewer = true,
-                        no_ignore = true  -- This will show files in .gitignore as well
                     },
                     live_grep = {
                         previewer = true,
-                    -- hidden = true     -- This enables searching in hidden files
                     }
                 }
             })
-            vim.keymap.set("n", "<leader>fn", ":Telescope find_files cwd=~/Google\\ Drive/My\\ Drive/Obsidian<CR>")
-            vim.keymap.set("n", "<leader>fg", ":Telescope live_grep cwd=~/Google\\ Drive/My\\ Drive/Obsidian<CR>")
-            vim.keymap.set("n", "<leader>fl", ":Telescope find_files cwd=~/Google\\ Drive/My\\ Drive/llm_sessions<CR>")
         end
     },
 
+    -- Treesitter for syntax highlighting and code parsing
     {
         "nvim-treesitter/nvim-treesitter",
         build = ":TSUpdate",
@@ -181,6 +176,8 @@ return {
             })
         end
     },
+
+    -- Harpoon for quick file navigation and bookmarking
     {
         "ThePrimeagen/harpoon",
         config = function()
@@ -218,7 +215,11 @@ return {
         end,
         dependencies = { "nvim-lua/plenary.nvim" }
     },
+
+    -- Undotree
     { "mbbill/undotree" },
+
+    -- Git integration
     { "tpope/vim-fugitive" },
 
     -- LSP and completion
@@ -248,35 +249,51 @@ return {
 
             -- Configure mason to automatically install LSP servers
             require('mason').setup({})
-            require('mason-lspconfig').setup({
-                ensure_installed = {
-                    'pyright',
-                    'lua_ls',   -- Lua LSP
-                    'sqlls',    -- SQL LSP
-                    'emmet_ls', -- HTML/CSS/Jinja LSP
-                },
-                handlers = {
-                    lsp.default_setup,
-                ["lua_ls"] = function()
-                    require('lspconfig').lua_ls.setup({
-                        settings = {
-                            Lua = {
-                                diagnostics = {
-                                    globals = { 'vim' }
+            require('mason-lspconfig').setup(
+                {
+                    ensure_installed = {
+                        'pyright',    -- Python LSP
+                        'lua_ls',     -- Lua LSP
+                        'sqlls',      -- SQL LSP
+                        'emmet_ls',   -- HTML/CSS/Jinja LSP
+                        'ts_ls',   -- TypeScript/JavaScript server
+                    },
+                    handlers = {
+                        lsp.default_setup,
+                        ["lua_ls"] = function()
+                            require('lspconfig').lua_ls.setup({
+                                settings = {
+                                    Lua = {
+                                        diagnostics = {
+                                            globals = { 'vim' }
+                                        },
+                                        workspace = {
+                                            library = vim.api.nvim_get_runtime_file("", true),
+                                            checkThirdParty = false,
+                                        },
+                                        telemetry = {
+                                            enable = false,
+                                        },
+                                    },
                                 },
-                                workspace = {
-                                    library = vim.api.nvim_get_runtime_file("", true),
-                                    checkThirdParty = false,
+                            })
+                        end,
+                        ["pyright"] = function()
+                            require('lspconfig').pyright.setup({
+                                settings = {
+                                    python = {
+                                        analysis = {
+                                            autoSearchPaths = true,
+                                            diagnosticMode = "workspace",
+                                            useLibraryCodeForTypes = true,
+                                            typeCheckingMode = "basic",
+                                        },
+                                    },
                                 },
-                                telemetry = {
-                                    enable = false,
-                                },
-                            },
-                        },
-                    })
-                end,
-                }
-            })
+                            })
+                        end,
+                    }}
+            )
 
             -- Configure completion
             local cmp = require('cmp')
@@ -290,6 +307,33 @@ return {
                     ['<C-Space>'] = cmp.mapping.complete(),
                 })
             })
+
+            -- Add keybindings for LSP functionality
+            lsp.on_attach(function(client, bufnr)
+                local opts = {buffer = bufnr, remap = false}
+                
+                -- Go to definition
+                vim.keymap.set("n", "gd", function() vim.lsp.buf.definition() end, opts)
+                -- Go to declaration
+                vim.keymap.set("n", "gD", function() vim.lsp.buf.declaration() end, opts)
+                -- Show implementation
+                vim.keymap.set("n", "gi", function() vim.lsp.buf.implementation() end, opts)
+                -- Show references
+                vim.keymap.set("n", "gr", function() vim.lsp.buf.references() end, opts)
+                -- Hover documentation
+                vim.keymap.set("n", "K", function() vim.lsp.buf.hover() end, opts)
+                -- Rename symbol
+                vim.keymap.set("n", "<leader>rn", function() vim.lsp.buf.rename() end, opts)
+                -- Code action
+                vim.keymap.set("n", "<leader>ca", function() vim.lsp.buf.code_action() end, opts)
+                -- Format code
+                vim.keymap.set("n", "<leader>f", function() vim.lsp.buf.format() end, opts)
+                
+                -- Diagnostic navigation
+                vim.keymap.set("n", "[d", function() vim.diagnostic.goto_prev() end, opts)
+                vim.keymap.set("n", "]d", function() vim.diagnostic.goto_next() end, opts)
+                vim.keymap.set("n", "<leader>d", function() vim.diagnostic.open_float() end, opts)
+            end)
 
             lsp.setup()
         end
@@ -320,6 +364,8 @@ return {
             })
         end
     },
+
+    -- Surround text objects like parentheses, quotes, etc.
     { "tpope/vim-surround" },
 
        -- Terminal/tmux integration
@@ -338,11 +384,6 @@ return {
             -- Enable YAML frontmatter
             vim.g.vim_markdown_frontmatter = 1
         end
-    },
-    {
-        "iamcco/markdown-preview.nvim",
-        cmd = { "MarkdownPreview", "MarkdownPreviewToggle" },
-        build = function() vim.fn["mkdp#util#install"]() end,
     },
 
     -- Obsidian
@@ -403,15 +444,6 @@ return {
                 end
             end, { noremap = false, expr = true })
 
-            -- Regular new note
-            vim.keymap.set("n", "<leader>fp", ":ObsidianNew<CR>")
-            -- Daily note
-            vim.keymap.set("n", "<leader>fd", ":ObsidianToday<CR>")
-            -- Open yesterday's daily note
-            vim.keymap.set("n", "<leader>fy", ":ObsidianYesterday<CR>")
-            -- Open tomorrow's daily note
-            vim.keymap.set("n", "<leader>ft", ":ObsidianTomorrow<CR>")
-
             -- Function to open a specific Obsidian file
             local function open_obsidian_file(file_path)
                 -- Construct the full path (assuming your vault path)
@@ -424,64 +456,6 @@ return {
                 open_obsidian_file("to-do.md")
             end)
             end
-    },
-
-    -- Avante:
-   {
-     "yetone/avante.nvim",
-      event = "VeryLazy",
-      version = false, -- Set this to "*" to always pull the latest release version, or set it to false to update to the latest code changes.
-      opts = {
-          claude = {
-            endpoint = "https://api.anthropic.com",
-            model = "claude-3-7-sonnet-latest",
-            timeout = 30000, -- Timeout in milliseconds
-            temperature = 0,
-            max_tokens = 4096,
-            disable_tools = true, -- disable tools!
-          },
-        },
-      -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
-      build = "make",
-      -- build = "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false" -- for windows
-      dependencies = {
-        "nvim-treesitter/nvim-treesitter",
-        "stevearc/dressing.nvim",
-        "nvim-lua/plenary.nvim",
-        "MunifTanjim/nui.nvim",
-        --- The below dependencies are optional,
-        "echasnovski/mini.pick", -- for file_selector provider mini.pick
-        "nvim-telescope/telescope.nvim", -- for file_selector provider telescope
-        "hrsh7th/nvim-cmp", -- autocompletion for avante commands and mentions
-        "ibhagwan/fzf-lua", -- for file_selector provider fzf
-        "nvim-tree/nvim-web-devicons", -- or echasnovski/mini.icons
-        "zbirenbaum/copilot.lua", -- for providers='copilot'
-        {
-          -- support for image pasting
-          "HakonHarnes/img-clip.nvim",
-          event = "VeryLazy",
-          opts = {
-            -- recommended settings
-            default = {
-              embed_image_as_base64 = false,
-              prompt_for_file_name = false,
-              drag_and_drop = {
-                insert_mode = true,
-              },
-              -- required for Windows users
-              use_absolute_path = true,
-            },
-          },
-        },
-        {
-          -- Make sure to set this up properly if you have lazy=true
-          'MeanderingProgrammer/render-markdown.nvim',
-          opts = {
-            file_types = { "markdown", "Avante" },
-          },
-          ft = { "markdown", "Avante" },
-        },
-      },
     },
 
     -- GitHub Copilot
@@ -598,43 +572,6 @@ return true
         end
     },
 
-    -- Auto-reload files
-    {
-        "famiu/bufdelete.nvim",
-        config = function()
-            -- Create an autocommand group for file change detection
-            local auto_reload_group = vim.api.nvim_create_augroup("AutoReload", { clear = true })
-            
-            -- Enable autoread globally
-            vim.o.autoread = true
-            
-            -- Create a timer for checking file changes
-            local timer = vim.loop.new_timer()
-            timer:start(0, 250, vim.schedule_wrap(function()
-                -- Only check if Neovim is not in the middle of something
-                if vim.fn.getcmdwintype() == "" then
-                    -- Get current buffer number
-                    local bufnr = vim.api.nvim_get_current_buf()
-                    -- Get buffer's file path
-                    local filepath = vim.api.nvim_buf_get_name(bufnr)
-                    -- Only check if it's a real file
-                    if filepath ~= "" and vim.fn.filereadable(filepath) == 1 then
-                        vim.cmd('checktime ' .. bufnr)
-                    end
-                end
-            end))
-
-            -- Clean up timer when Neovim exits
-            vim.api.nvim_create_autocmd("VimLeave", {
-                group = auto_reload_group,
-                callback = function()
-                    timer:stop()
-                    timer:close()
-                end,
-            })
-        end
-    },
-
     -- NeoTree
     {
         "nvim-neo-tree/neo-tree.nvim",
@@ -651,11 +588,24 @@ return true
                 enable_diagnostics = true,
                 window = {
                     width = 30,
+                    auto_open = false,
                     mappings = {
                         ["<space>"] = "none",
                     }
                 },
+                event_handlers = {
+                  {
+                    event = "file_open_requested",
+                    handler = function()
+                      require("neo-tree.command").execute({ action = "close" })
+                    end
+                  },
+                },
                 filesystem = {
+                    watch_for_updates = true,
+                    follow_current_file = {
+                        enabled = true
+                    },
                     filtered_items = {
                         visible = false,
                         hide_dotfiles = false,
@@ -677,74 +627,6 @@ return true
                     },
                 },
             })
-            -- Toggle NeoTree with <leader>e
-            vim.keymap.set('n', '<leader>e', ':Neotree toggle<CR>', { silent = true })
         end
-    },    
-    -- Jupyter Notebook support
-    {
-        'quarto-dev/quarto-nvim',
-        dependencies = {
-            'jmbuhr/otter.nvim',
-            'hrsh7th/nvim-cmp',
-        },
-        config = function()
-            require('quarto').setup({
-                lspFeatures = {
-                    enabled = true,
-                    languages = { 'python', 'julia', 'bash' },
-                    diagnostics = {
-                        enabled = true,
-                        triggers = { "BufWrite" }
-                    },
-                    completion = {
-                        enabled = true
-                    },
-                }
-            })
-        end
-    },
-
-    -- Jupyter Notebook support
-    {
-        'goerz/jupytext.vim',
-        config = function()
-            -- Set default format for jupytext
-            vim.g.jupytext_fmt = 'py:percent'
-            -- Automatically sync with .ipynb files
-            vim.g.jupytext_enable_paired_ipynb = 1
-        end
-    },
-
-    -- Iron
-    {
-        "hkupty/iron.nvim",
-        config = function()
-            local iron = require("iron.core")
-            iron.setup({
-                config = {
-                    scratch_repl = true,
-                    repl_definition = {
-                        python = {
-                            command = { "ipython" },
-                            format = require("iron.fts.common").bracketed_paste,
-                        },
-                    },
-                    repl_open_cmd = require("iron.view").split.horizontal.botright(15),
-                },
-                -- If the highlight is on, you can change how it looks
-                highlight = {
-                    italic = true,
-                },
-                ignore_blank_lines = true, -- ignore blank lines when sending visual select lines
-            })
-    
-            -- iron also has a list of commands, see :h iron-commands for all available commands
-            vim.keymap.set('n', '<leader>rs', '<cmd>IronRepl<cr>')
-            -- Send visual selection to REPL
-            vim.keymap.set('v', '<leader>rc', '<cmd>\'<,\'>IronSend<cr>')
-            -- Send current line to REPL
-            vim.keymap.set('n', '<leader>rl', '<cmd>.IronSend<cr>')
-        end,
     }
 }
