@@ -153,7 +153,16 @@ return {
         "nvim-treesitter/nvim-treesitter",
         build = ":TSUpdate",
         config = function()
-            require("nvim-treesitter.configs").setup({
+            local status_ok, configs = pcall(require, "nvim-treesitter.configs")
+            if not status_ok then
+                -- Try the new API (config instead of configs)
+                status_ok, configs = pcall(require, "nvim-treesitter.config")
+            end
+            if not status_ok then
+                vim.notify("nvim-treesitter not loaded", vim.log.levels.WARN)
+                return
+            end
+            configs.setup({
                 ensure_installed = {
                     "python", "lua", "vim", "javascript",
                     "typescript", "json", "html", "css",
@@ -225,7 +234,7 @@ return {
     -- LSP and completion
     {
         "VonHeikemen/lsp-zero.nvim",
-        branch = "v2.x",
+        branch = "v4.x",
         dependencies = {
             -- LSP Support
             { "neovim/nvim-lspconfig" },
@@ -245,71 +254,89 @@ return {
             { "rafamadriz/friendly-snippets" },
         },
         config = function()
-            local lsp = require('lsp-zero').preset({})
+            local lsp_zero = require('lsp-zero')
 
             -- Configure mason to automatically install LSP servers
             require('mason').setup({})
-            require('mason-lspconfig').setup(
-                {
-                    ensure_installed = {
-                        'pyright',    -- Python LSP
-                        'lua_ls',     -- Lua LSP
-                        'sqlls',      -- SQL LSP
-                        'emmet_ls',   -- HTML/CSS/Jinja LSP
-                        'ts_ls',   -- TypeScript/JavaScript server
-                    },
-                    handlers = {
-                        lsp.default_setup,
-                        ["lua_ls"] = function()
-                            require('lspconfig').lua_ls.setup({
-                                settings = {
-                                    Lua = {
-                                        diagnostics = {
-                                            globals = { 'vim' }
-                                        },
-                                        workspace = {
-                                            library = vim.api.nvim_get_runtime_file("", true),
-                                            checkThirdParty = false,
-                                        },
-                                        telemetry = {
-                                            enable = false,
-                                        },
+            require('mason-lspconfig').setup({
+                ensure_installed = {
+                    'pyright',    -- Python LSP
+                    'lua_ls',     -- Lua LSP
+                    'sqlls',      -- SQL LSP
+                    'emmet_ls',   -- HTML/CSS/Jinja LSP
+                    'ts_ls',   -- TypeScript/JavaScript server
+                },
+                handlers = {
+                    -- Default handler for all servers
+                    function(server_name)
+                        require('lspconfig')[server_name].setup({})
+                    end,
+                    -- Custom handler for lua_ls
+                    ["lua_ls"] = function()
+                        require('lspconfig').lua_ls.setup({
+                            settings = {
+                                Lua = {
+                                    diagnostics = {
+                                        globals = { 'vim' }
+                                    },
+                                    workspace = {
+                                        library = vim.api.nvim_get_runtime_file("", true),
+                                        checkThirdParty = false,
+                                    },
+                                    telemetry = {
+                                        enable = false,
                                     },
                                 },
-                            })
-                        end,
-                        ["pyright"] = function()
-                            require('lspconfig').pyright.setup({
-                                settings = {
-                                    python = {
-                                        analysis = {
-                                            autoSearchPaths = true,
-                                            diagnosticMode = "workspace",
-                                            useLibraryCodeForTypes = true,
-                                            typeCheckingMode = "basic",
-                                        },
+                            },
+                        })
+                    end,
+                    -- Custom handler for pyright
+                    ["pyright"] = function()
+                        require('lspconfig').pyright.setup({
+                            settings = {
+                                python = {
+                                    analysis = {
+                                        autoSearchPaths = true,
+                                        diagnosticMode = "workspace",
+                                        useLibraryCodeForTypes = true,
+                                        typeCheckingMode = "basic",
                                     },
                                 },
-                            })
-                        end,
-                    }}
-            )
+                            },
+                        })
+                    end,
+                },
+            })
 
             -- Configure completion
             local cmp = require('cmp')
             local cmp_select = {behavior = cmp.SelectBehavior.Select}
+            local cmp_action = lsp_zero.cmp_action()
 
             cmp.setup({
+                sources = {
+                    {name = 'nvim_lsp'},
+                    {name = 'luasnip'},
+                    {name = 'buffer'},
+                    {name = 'path'},
+                },
                 mapping = cmp.mapping.preset.insert({
                     ['<C-p>'] = cmp.mapping.select_prev_item(cmp_select),
                     ['<C-n>'] = cmp.mapping.select_next_item(cmp_select),
                     ['<C-y>'] = cmp.mapping.confirm({ select = true }),
                     ['<C-Space>'] = cmp.mapping.complete(),
-                })
+                    ['<C-f>'] = cmp_action.luasnip_jump_forward(),
+                    ['<C-b>'] = cmp_action.luasnip_jump_backward(),
+                }),
+                snippet = {
+                    expand = function(args)
+                        require('luasnip').lsp_expand(args.body)
+                    end,
+                },
             })
 
             -- Add keybindings for LSP functionality
-            lsp.on_attach(function(client, bufnr)
+            lsp_zero.on_attach(function(client, bufnr)
                 local opts = {buffer = bufnr, remap = false}
                 
                 -- Go to definition
@@ -334,8 +361,6 @@ return {
                 vim.keymap.set("n", "]d", function() vim.diagnostic.goto_next() end, opts)
                 vim.keymap.set("n", "<leader>d", function() vim.diagnostic.open_float() end, opts)
             end)
-
-            lsp.setup()
         end
     },
 
