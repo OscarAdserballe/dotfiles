@@ -12,7 +12,7 @@
 - Read existing code before proposing changes.
 - Ask clarifying questions rather than making assumptions.
 - ALWAYS pitch solutions with an estimate of how many LINE- and FILE-changes it will take. The lower the better. A PR that can be landed in 20 lines is nearly always far superior to one in 200.
-- Give a high-level architectural overview in a Mermaid chart in the plan. The landmarks to flag are usually changes/additions/removals of 1) Data Schemas, 2) Interfaces and 3) Entry/Exit points. Thinking along the lines of the C4 Model is in general helpful.
+- Give a high-level architectural overview in a Mermaid chart in the plan. The landmarks to flag are usually changes/additions/removals of 1) Data Schemas, 2) Interfaces and 3) Entry/Exit points. Thinking along the lines of the C4 Model is in general helpful. You should also include the main functions/objects you're planning to introduce.
 - It's IMPERATIVE that we prior to building something have a way of VALIDATING that the new thing works.
 
 

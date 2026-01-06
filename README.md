@@ -1,19 +1,22 @@
 dotfiles repo, to store all config-files for different programs.
 
-`mkdir -p ~/dotfiles/.config/nvim`
+## Quick Setup
 
-Moving file from .config:
+Run all commands to symlink everything:
 
-`mv ~/.config/[...] ~/dotfiles/.config/`
-
-Symlink:
-
-`ln -s ~/dotfiles/.config/[...] ~/.config/[...]`
-
-Claude:
-
-```
+```bash
+# Claude
 ln -sf ~/dotfiles/.config/claude/CLAUDE.md ~/.claude/CLAUDE.md
 ln -sfh ~/dotfiles/.config/claude/agents ~/.claude/agents
 ln -sfh ~/dotfiles/.config/claude/skills ~/.claude/skills
+
+# Neovim
+ln -sfh ~/dotfiles/.config/nvim ~/.config/nvim
+
+# Tmux
+mkdir -p ~/.config/tmux
+ln -sf ~/dotfiles/.config/tmux/tmux.conf ~/.config/tmux/tmux.conf
+
+# Zsh
+ln -sf ~/dotfiles/.config/zsh/.zshrc ~/.zshrc
 ```
