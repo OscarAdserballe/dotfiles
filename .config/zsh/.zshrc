@@ -16,6 +16,10 @@ if [ -f "$HOME/.config/secrets.zsh" ]; then
     source "$HOME/.config/secrets.zsh"
 fi
 
+if [ -f "$HOME/.secrets" ]; then
+    source "$HOME/.secrets"
+fi
+
 export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 
 export PATH="$HOME/.local/bin:$PATH"

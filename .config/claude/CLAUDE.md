@@ -29,7 +29,7 @@
 
 # After Code Changes
 
-- Run the pre-push code reviewer agent before suggesting the work is done and provide a summary of its review.
+- Conduct a thorough review before suggesting the work is done and provide a summary of your review. Be VERY self-critical of the work you've done and start by diffing against main to get a clear view of your changes.
 - List concrete next steps or improvements discovered during implementation.
 - Make sure to flag unexpected "ugly" code bits in your summary of changes.
 - Make sure to communicate how we can verify it works. This might be a test, this might require the user run some cli command, but the implemented changes should always have SOME WAY OF VERIFYING it works.

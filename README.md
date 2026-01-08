@@ -10,6 +10,9 @@ ln -sf ~/dotfiles/.config/claude/CLAUDE.md ~/.claude/CLAUDE.md
 ln -sfh ~/dotfiles/.config/claude/agents ~/.claude/agents
 ln -sfh ~/dotfiles/.config/claude/skills ~/.claude/skills
 
+# Codex (shares CLAUDE.md as AGENTS.md)
+ln -sf ~/dotfiles/.config/claude/CLAUDE.md ~/.codex/AGENTS.md
+
 # Neovim
 ln -sfh ~/dotfiles/.config/nvim ~/.config/nvim
 
