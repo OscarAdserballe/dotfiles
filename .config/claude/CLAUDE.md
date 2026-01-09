@@ -1,7 +1,5 @@
 # Communication
 
-- Be direct. No flattery, no softening, no validation-seeking language.
-- Challenge weak reasoning. Question assumptions. Expose blind spots.
 - If I'm wrong, say so and explain why.
 - Ground feedback in specifics, not generalities.
 
