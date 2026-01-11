@@ -254,7 +254,7 @@ return {
             { "rafamadriz/friendly-snippets" },
         },
         config = function()
-            local lsp_zero = require('lsp-zero')
+            local lsp_zero = require('lsp-zero').preset({})
 
             -- Configure mason to automatically install LSP servers
             require('mason').setup({})
@@ -267,13 +267,13 @@ return {
                     'ts_ls',   -- TypeScript/JavaScript server
                 },
                 handlers = {
-                    -- Default handler for all servers
+                    -- Default handler for all servers using lsp-zero
                     function(server_name)
-                        require('lspconfig')[server_name].setup({})
+                        lsp_zero.configure(server_name, {})
                     end,
                     -- Custom handler for lua_ls
                     ["lua_ls"] = function()
-                        require('lspconfig').lua_ls.setup({
+                        lsp_zero.configure('lua_ls', {
                             settings = {
                                 Lua = {
                                     diagnostics = {
@@ -292,7 +292,7 @@ return {
                     end,
                     -- Custom handler for pyright
                     ["pyright"] = function()
-                        require('lspconfig').pyright.setup({
+                        lsp_zero.configure('pyright', {
                             settings = {
                                 python = {
                                     analysis = {
@@ -411,77 +411,6 @@ return {
         end
     },
 
-    -- Obsidian
-    {
-        "epwalsh/obsidian.nvim",
-        lazy = false,
-        -- when to load the plugin: on specific events
-        event = {
-            "BufReadPre " .. vim.fn.expand "~" .. "/Google\\ Drive/My\\ Drive/Obsidian/**.md",
-            "BufNewFile " .. vim.fn.expand "~" .. "/Google\\ Drive/My\\ Drive/Obsidian/**.md",
-        },
-        dependencies = {
-            "nvim-lua/plenary.nvim",
-        },
-        config = function()
-            require("obsidian").setup({
-                dir = "~/Google Drive/My Drive/Obsidian",
-                notes_subdir = "Quick Notes",
-                note_id_func = function(title)
-                    -- Convert the title to a valid filename
-                    local suffix = ""
-                    if title ~= nil then
-                        -- Clean title and convert to lowercase
-                        suffix = title:gsub(" ", "-"):gsub("[^A-Za-z0-9-]", ""):lower()
-                    else
-                        -- If no title provided, use date
-                        suffix = os.date("%Y-%m-%d-%H%M%S")
-                end
-                return suffix
-            end,
-                daily_notes = {
-                    folder = "Daily",
-                    date_format = "%Y-%m-%d",
-                    template="daily.md"
-                },
-                completion = {
-                    nvim_cmp = true,
-                    min_chars = 2,
-                },
-                templates = {
-                    folder = "Templates",
-                    date_format = "%Y-%m-%d",
-                    time_format = "%H:%M",
-                },
-                -- Enable WikiLinks [[Links]]
-                disable_frontmatter = false,
-                note_frontmatter_func = nil,
-                follow_url_func = nil,
-                use_advanced_uri = true,
-            })
-
-            -- Key mappings for Obsidian features
-            vim.keymap.set("n", "gf", function()
-                if require("obsidian").util.cursor_on_markdown_link() then
-                    return "<cmd>ObsidianFollowLink<CR>"
-                else
-                    return "gf"
-                end
-            end, { noremap = false, expr = true })
-
-            -- Function to open a specific Obsidian file
-            local function open_obsidian_file(file_path)
-                -- Construct the full path (assuming your vault path)
-                local full_path = "~/Google Drive/My Drive/Obsidian/" .. file_path
-                -- Expand the path and open the file
-                vim.cmd('edit ' .. vim.fn.expand(full_path))
-            end
-
-            vim.keymap.set("n", "<leader>fo", function()
-                open_obsidian_file("to-do.md")
-            end)
-            end
-    },
 
     -- GitHub Copilot
     {
