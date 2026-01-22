@@ -40,6 +40,9 @@ vim.opt.number = true            -- Show line numbers
 vim.opt.relativenumber = true    -- Show relative line numbers
 vim.opt.mouse = 'a'             -- Enable mouse support
 
+-- Clipboard integration
+vim.opt.clipboard = "unnamedplus"  -- Use system clipboard for all yank/paste operations
+
 -- Cursor settings
 vim.opt.guicursor = "n-v-c:block,i-ci-ve:ver25,r-cr:hor20,o:hor50"  -- Different cursor shapes for different modes
 vim.opt.cursorline = true    -- Highlight the current line

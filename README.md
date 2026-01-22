@@ -22,4 +22,7 @@ ln -sf ~/dotfiles/.config/tmux/tmux.conf ~/.config/tmux/tmux.conf
 
 # Zsh
 ln -sf ~/dotfiles/.config/zsh/.zshrc ~/.zshrc
+
+# Opencode
+ln -s ~/dotfiles/.config/opencode/opencode.jsonc ~/.config/opencode/opencode.jsonc
 ```

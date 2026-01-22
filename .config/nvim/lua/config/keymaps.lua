@@ -72,6 +72,14 @@ vim.keymap.set('v', '<C-d>', '<C-d>zz', { noremap = true, silent = true })
 vim.keymap.set('n', '<leader>p', '"_dP', { noremap = true, silent = true, desc = "Paste without changing default register" })
 vim.keymap.set('v', '<leader>p', '"_dP', { noremap = true, silent = true, desc = "Paste without changing default register" })
 
+-- Clipboard operations (works with system clipboard when clipboard=unnamedplus is set)
+-- Copy to system clipboard with leader-y
+vim.keymap.set('n', '<leader>y', '"+y', { noremap = true, silent = true, desc = "Yank to system clipboard" })
+vim.keymap.set('v', '<leader>y', '"+y', { noremap = true, silent = true, desc = "Yank to system clipboard" })
+-- Paste from system clipboard with leader-P (uppercase)
+vim.keymap.set('n', '<leader>P', '"+p', { noremap = true, silent = true, desc = "Paste from system clipboard" })
+vim.keymap.set('v', '<leader>P', '"+p', { noremap = true, silent = true, desc = "Paste from system clipboard" })
+
 -- Export the setup function for use in LSP configuration
 return {
     setup_lsp_keymaps = setup_lsp_keymaps
