@@ -12,10 +12,6 @@ plugins=(
     colored-man-pages
 )
 
-if [ -f "$HOME/.config/secrets.zsh" ]; then
-    source "$HOME/.config/secrets.zsh"
-fi
-
 if [ -f "$HOME/.secrets" ]; then
     source "$HOME/.secrets"
 fi
