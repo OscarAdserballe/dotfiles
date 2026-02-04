@@ -254,7 +254,17 @@ return {
             { "rafamadriz/friendly-snippets" },
         },
         config = function()
-            local lsp_zero = require('lsp-zero').preset({})
+            -- Reserve a space in the gutter
+            vim.opt.signcolumn = 'yes'
+
+            -- Add Vcmp_nvim_lsp capabilities settings to lspconfig
+            -- This should be executed before you configure any language server
+            local lspconfig_defaults = require('lspconfig').util.default_config
+            lspconfig_defaults.capabilities = vim.tbl_deep_extend(
+                'force',
+                lspconfig_defaults.capabilities,
+                require('cmp_nvim_lsp').default_capabilities()
+            )
 
             -- Configure mason to automatically install LSP servers
             require('mason').setup({})
@@ -267,13 +277,13 @@ return {
                     'ts_ls',   -- TypeScript/JavaScript server
                 },
                 handlers = {
-                    -- Default handler for all servers using lsp-zero
+                    -- Default handler for all servers
                     function(server_name)
-                        lsp_zero.configure(server_name, {})
+                        require('lspconfig')[server_name].setup({})
                     end,
                     -- Custom handler for lua_ls
                     ["lua_ls"] = function()
-                        lsp_zero.configure('lua_ls', {
+                        require('lspconfig').lua_ls.setup({
                             settings = {
                                 Lua = {
                                     diagnostics = {
@@ -292,7 +302,7 @@ return {
                     end,
                     -- Custom handler for pyright
                     ["pyright"] = function()
-                        lsp_zero.configure('pyright', {
+                        require('lspconfig').pyright.setup({
                             settings = {
                                 python = {
                                     analysis = {
@@ -311,7 +321,6 @@ return {
             -- Configure completion
             local cmp = require('cmp')
             local cmp_select = {behavior = cmp.SelectBehavior.Select}
-            local cmp_action = lsp_zero.cmp_action()
 
             cmp.setup({
                 sources = {
@@ -325,8 +334,20 @@ return {
                     ['<C-n>'] = cmp.mapping.select_next_item(cmp_select),
                     ['<C-y>'] = cmp.mapping.confirm({ select = true }),
                     ['<C-Space>'] = cmp.mapping.complete(),
-                    ['<C-f>'] = cmp_action.luasnip_jump_forward(),
-                    ['<C-b>'] = cmp_action.luasnip_jump_backward(),
+                    ['<C-f>'] = cmp.mapping(function(fallback)
+                        if require('luasnip').jumpable(1) then
+                            require('luasnip').jump(1)
+                        else
+                            fallback()
+                        end
+                    end, {'i', 's'}),
+                    ['<C-b>'] = cmp.mapping(function(fallback)
+                        if require('luasnip').jumpable(-1) then
+                            require('luasnip').jump(-1)
+                        else
+                            fallback()
+                        end
+                    end, {'i', 's'}),
                 }),
                 snippet = {
                     expand = function(args)
@@ -335,32 +356,35 @@ return {
                 },
             })
 
-            -- Add keybindings for LSP functionality
-            lsp_zero.on_attach(function(client, bufnr)
-                local opts = {buffer = bufnr, remap = false}
-                
-                -- Go to definition
-                vim.keymap.set("n", "gd", function() vim.lsp.buf.definition() end, opts)
-                -- Go to declaration
-                vim.keymap.set("n", "gD", function() vim.lsp.buf.declaration() end, opts)
-                -- Show implementation
-                vim.keymap.set("n", "gi", function() vim.lsp.buf.implementation() end, opts)
-                -- Show references
-                vim.keymap.set("n", "gr", function() vim.lsp.buf.references() end, opts)
-                -- Hover documentation
-                vim.keymap.set("n", "K", function() vim.lsp.buf.hover() end, opts)
-                -- Rename symbol
-                vim.keymap.set("n", "<leader>rn", function() vim.lsp.buf.rename() end, opts)
-                -- Code action
-                vim.keymap.set("n", "<leader>ca", function() vim.lsp.buf.code_action() end, opts)
-                -- Format code
-                vim.keymap.set("n", "<leader>f", function() vim.lsp.buf.format() end, opts)
-                
-                -- Diagnostic navigation
-                vim.keymap.set("n", "[d", function() vim.diagnostic.goto_prev() end, opts)
-                vim.keymap.set("n", "]d", function() vim.diagnostic.goto_next() end, opts)
-                vim.keymap.set("n", "<leader>d", function() vim.diagnostic.open_float() end, opts)
-            end)
+            -- Add keybindings for LSP functionality using LspAttach autocmd
+            vim.api.nvim_create_autocmd('LspAttach', {
+                desc = 'LSP actions',
+                callback = function(event)
+                    local opts = {buffer = event.buf, remap = false}
+                    
+                    -- Go to definition
+                    vim.keymap.set("n", "gd", function() vim.lsp.buf.definition() end, opts)
+                    -- Go to declaration
+                    vim.keymap.set("n", "gD", function() vim.lsp.buf.declaration() end, opts)
+                    -- Show implementation
+                    vim.keymap.set("n", "gi", function() vim.lsp.buf.implementation() end, opts)
+                    -- Show references
+                    vim.keymap.set("n", "gr", function() vim.lsp.buf.references() end, opts)
+                    -- Hover documentation
+                    vim.keymap.set("n", "K", function() vim.lsp.buf.hover() end, opts)
+                    -- Rename symbol
+                    vim.keymap.set("n", "<leader>rn", function() vim.lsp.buf.rename() end, opts)
+                    -- Code action
+                    vim.keymap.set("n", "<leader>ca", function() vim.lsp.buf.code_action() end, opts)
+                    -- Format code
+                    vim.keymap.set("n", "<leader>f", function() vim.lsp.buf.format() end, opts)
+                    
+                    -- Diagnostic navigation
+                    vim.keymap.set("n", "[d", function() vim.diagnostic.goto_prev() end, opts)
+                    vim.keymap.set("n", "]d", function() vim.diagnostic.goto_next() end, opts)
+                    vim.keymap.set("n", "<leader>d", function() vim.diagnostic.open_float() end, opts)
+                end,
+            })
         end
     },
 
