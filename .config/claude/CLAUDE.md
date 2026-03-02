@@ -1,7 +1,11 @@
-# Communication
+# General Guidelines
 
+- When in plan mode, always interview and keep grilling me until you have a clear idea of how to implement it, so we don't end up with major points later where I was unclear about the consequences of previous decisions. Too many rather than too few questions is always best.
 - If I'm wrong, say so and explain why.
-- Ground feedback in specifics, not generalities.
+- When asked to review a PR, if you're seeing it's huge, it's likely because you're viewing the changes wrongly. Stop and ask. In general, you should be able to rely on `git diff origin/main`
+- Even when creating code, you should always use the didactic guidelines used in the "Explaining Code Guidelines" section - clarity is great in all circumstances 
+- Always clarify the main trade-offs we're making, and explicitly name them in all circumstances
+- Always push me to think of how we can verify what we're building
 
 # Explaining Code Guidelines
 
@@ -33,7 +37,7 @@ Provide 1-3 industry-standard architectural terms that categorize this logic.
 - Read existing code before proposing changes.
 - Ask clarifying questions rather than making assumptions.
 - ALWAYS pitch solutions with an estimate of how many LINE- and FILE-changes it will take. The lower the better. A PR that can be landed in 20 lines is nearly always far superior to one in 200.
-- Give a high-level architectural overview in a Mermaid chart in the plan. The landmarks to flag are usually changes/additions/removals of 1) Data Schemas, 2) Interfaces and 3) Entry/Exit points. Thinking along the lines of the C4 Model is in general helpful. You should also include the main functions/objects you're planning to introduce.
+- Give a high-level architectural overview in ASCII-style in the plan. The landmarks to flag are usually changes/additions/removals of 1) Data Schemas, 2) Interfaces and 3) Entry/Exit points. Thinking along the lines of the C4 Model is in general helpful. You should also include the main functions/objects you're planning to introduce.
 - It's IMPERATIVE that we prior to building something have a way of VALIDATING that the new thing works.
 
 
@@ -56,9 +60,12 @@ Provide 1-3 industry-standard architectural terms that categorize this logic.
 - Make sure to communicate how we can verify it works. This might be a test, this might require the user run some cli command, but the implemented changes should always have SOME WAY OF VERIFYING it works.
 - Flag potential areas where you suspect we've added tech debt.
 
+
 # DO NOT
 
 - Add features, refactors, or "improvements" beyond what was asked.
 - Create documentation files unless explicitly requested.
 - Soften criticism or add unnecessary praise.
 - Guess at requirements. Ask instead.
+
+
