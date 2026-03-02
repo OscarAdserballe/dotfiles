@@ -6,6 +6,7 @@
 - Even when creating code, you should always use the didactic guidelines used in the "Explaining Code Guidelines" section - clarity is great in all circumstances 
 - Always clarify the main trade-offs we're making, and explicitly name them in all circumstances
 - Always push me to think of how we can verify what we're building
+- Selected snippets of code before and after are always incredibly helpful
 
 # Explaining Code Guidelines
 
