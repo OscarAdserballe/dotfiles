@@ -125,7 +125,7 @@ alias v.="nvim ."
 alias v="nvim ."
 # Directory aliases
 alias f='cd "$(find . -type d | fzf)"'
-alias cds="cd ~/Google\ Drive/My\ Drive/2025B"
+alias cds="cd ~/Google\ Drive/My\ Drive/2026A"
 alias cdo="cd ~/Google\ Drive/My\ Drive/Obsidian"
 alias cdg="cd ~/Google\ Drive/My\ Drive/"
 alias cda="cd ~/kristeligt-dagblad"
@@ -151,3 +151,13 @@ dbtc() {
 alias transcript="python ~/Projects/get_transcripts/yt_transcript.py"
 alias newspaper="python -m newspaper --output-format=text --url"
 alias port-plan="python3 ~/dotfiles/scripts/claude-plan-copier.py"
+
+
+# Latex alias
+alias pdflatex="export PATH=\"/Library/TeX/texbin:$PATH\" && latexmk -pdf"
+
+
+export PATH="/opt/homebrew/opt/libpq/bin:$PATH"
+
+# Added by Holistics CLI installer
+export PATH="$HOME/.holistics/bin:$PATH"
