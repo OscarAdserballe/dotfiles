@@ -158,6 +158,7 @@ alias pdflatex="export PATH=\"/Library/TeX/texbin:$PATH\" && latexmk -pdf"
 
 
 export PATH="/opt/homebrew/opt/libpq/bin:$PATH"
+alias hermes="ssh hermes@100.69.223.106"
 
 # Added by Holistics CLI installer
 export PATH="$HOME/.holistics/bin:$PATH"
